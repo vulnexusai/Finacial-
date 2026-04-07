@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo gradiente -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d2d2d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffed4e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fundo -->
+  <rect width="512" height="512" fill="url(#bgGradient)"/>
+  
+  <!-- Círculo de destaque -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="url(#goldGradient)" stroke-width="8" opacity="0.3"/>
+  
+  <!-- Símbolo Bitcoin (₿) -->
+  <g transform="translate(256, 256)">
+    <!-- Texto principal -->
+    <text x="0" y="0" font-size="280" font-weight="bold" fill="url(#goldGradient)" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif">₿</text>
+    
+    <!-- Brilho adicional -->
+    <circle cx="0" cy="0" r="140" fill="none" stroke="url(#goldGradient)" stroke-width="2" opacity="0.2"/>
+  </g>
+  
+  <!-- Elementos decorativos (gráfico de cotações) -->
+  <g opacity="0.2" stroke="#ffd700" stroke-width="3" fill="none">
+    <!-- Linha de gráfico -->
+    <polyline points="80,380 120,320 160,340 200,280 240,300 280,200 320,240 360,160 400,180 440,100"/>
+  </g>
+  
+  <!-- Texto "FinançaBR" (opcional, para versão com texto) -->
+  <text x="256" y="460" font-size="32" font-weight="bold" fill="#ffd700" text-anchor="middle" font-family="Arial, sans-serif" opacity="0.8">FinançaBR</text>
+</svg>

@@ -10,22 +10,34 @@
   "theme_color": "#ffd700",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231a1a1a' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' fill='%23ffd700' text-anchor='middle' dominant-baseline='central'>₿</text></svg>",
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='bgGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%231a1a1a;stop-opacity:1' /><stop offset='100%' style='stop-color:%232d2d2d;stop-opacity:1' /></linearGradient><linearGradient id='goldGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ffd700;stop-opacity:1' /><stop offset='100%' style='stop-color:%23ffed4e;stop-opacity:1' /></linearGradient></defs><rect width='192' height='192' fill='url(%23bgGradient)'/><circle cx='96' cy='96' r='88' fill='none' stroke='url(%23goldGradient)' stroke-width='3' opacity='0.3'/><text x='96' y='96' font-size='112' font-weight='bold' fill='url(%23goldGradient)' text-anchor='middle' dominant-baseline='central' font-family='Arial, sans-serif'>₿</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231a1a1a' width='512' height='512'/><text x='50%' y='50%' font-size='320' font-weight='bold' fill='%23ffd700' text-anchor='middle' dominant-baseline='central'>₿</text></svg>",
-      "sizes": "512x512",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='bgGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%231a1a1a;stop-opacity:1' /><stop offset='100%' style='stop-color:%232d2d2d;stop-opacity:1' /></linearGradient><linearGradient id='goldGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%23ffd700;stop-opacity:1' /><stop offset='100%' style='stop-color:%23ffed4e;stop-opacity:1' /></linearGradient></defs><rect width='192' height='192' fill='url(%23bgGradient)'/><circle cx='96' cy='96' r='88' fill='none' stroke='url(%23goldGradient)' stroke-width='3' opacity='0.3'/><text x='96' y='96' font-size='112' font-weight='bold' fill='url(%23goldGradient)' text-anchor='middle' dominant-baseline='central' font-family='Arial, sans-serif'>₿</text></svg>",
+      "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ],
   "categories": ["finance", "business"],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%231a1a1a' width='540' height='720'/><text x='50%' y='100' font-size='48' font-weight='bold' fill='%23ffd700' text-anchor='middle'>FinançaBR</text><text x='50%' y='200' font-size='32' fill='%23999' text-anchor='middle'>Cotações em Tempo Real</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><defs><linearGradient id='bgGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%231a1a1a;stop-opacity:1' /><stop offset='100%' style='stop-color:%232d2d2d;stop-opacity:1' /></linearGradient></defs><rect width='540' height='720' fill='url(%23bgGradient)'/><text x='270' y='100' font-size='48' font-weight='bold' fill='%23ffd700' text-anchor='middle'>FinançaBR</text><text x='270' y='200' font-size='32' fill='%23999' text-anchor='middle'>Cotações em Tempo Real</text><rect x='40' y='280' width='460' height='80' rx='10' fill='%23333' opacity='0.5'/><text x='270' y='330' font-size='28' fill='%23ffd700' text-anchor='middle'>USD/BRL: R$ 5,14</text></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
@@ -39,7 +51,7 @@
       "url": "/?tab=cotacoes",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%231a1a1a' width='96' height='96'/><text x='50%' y='50%' font-size='60' font-weight='bold' fill='%23ffd700' text-anchor='middle' dominant-baseline='central'>💹</text></svg>",
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><defs><linearGradient id='bgGradient' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%231a1a1a;stop-opacity:1' /><stop offset='100%' style='stop-color:%232d2d2d;stop-opacity:1' /></linearGradient></defs><rect width='96' height='96' fill='url(%23bgGradient)'/><text x='48' y='48' font-size='60' font-weight='bold' fill='%23ffd700' text-anchor='middle' dominant-baseline='central'>💹</text></svg>",
           "sizes": "96x96",
           "type": "image/svg+xml"
         }
