@@ -166,13 +166,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 `;
 
 const MARKET_DEF = [
-  // CÂMBIO
-  { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$", cat:"Câmbio" },
-  { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$", cat:"Câmbio" },
-  
   // METAIS PRECIOSOS
   { key:"XAU-BRL", label:"Ouro/Real",     icon:"🟨", unit:"R$", cat:"Metais" },
   { key:"XAG-BRL", label:"Prata/Real",    icon:"⚪", unit:"R$", cat:"Metais" },
+  
+  // CÂMBIO
+  { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$", cat:"Câmbio" },
+  { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$", cat:"Câmbio" },
   
   // COMMODITIES
   { key:"OIL",     label:"Petróleo Brent", icon:"🛢️", unit:"USD", cat:"Commodities" },
