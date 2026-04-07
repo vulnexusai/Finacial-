@@ -312,36 +312,36 @@ function Simulador(){
     setAiTxt(""); 
     setLoading(true);
 
-    // Integração com OpenAI (exige chave no .env)
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    // Integração com Groq (Llama 3.3 70B)
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
     if (!apiKey) {
-      setAiTxt("Configure sua VITE_OPENAI_API_KEY no arquivo .env para receber análise de IA.");
+      setAiTxt("Configure sua VITE_GROQ_API_KEY no arquivo .env para receber análise de IA.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "llama-3.3-70b-versatile",
           messages: [{
             role: "system",
-            content: "Você é um consultor financeiro brasileiro. Analise simulações de financiamento imobiliário de forma curta e direta."
+            content: "Você é um consultor financeiro brasileiro especialista em crédito imobiliário. Analise com tom direto, humano e útil. Use o contexto econômico brasileiro atual."
           }, {
             role: "user",
-            content: `Analise: Renda ${fmtBRL(renda)}, Imóvel ${fmtBRL(imovel)}, Entrada ${fmtBRL(entrada)}, Parcela ${fmtBRL(parcela)} (${comp.toFixed(1)}% da renda).`
+            content: `Analise esta simulação: Renda mensal ${fmtBRL(renda)}, Valor do Imóvel ${fmtBRL(imovel)}, Entrada ${fmtBRL(entrada)} (${entPct.toFixed(1)}%), Parcela ${fmtBRL(parcela)} (${comp.toFixed(1)}% da renda). Total de juros: ${fmtBRL(juros)}. O que você recomenda?`
           }]
         })
       });
       const data = await response.json();
       setAiTxt(data.choices[0].message.content);
     } catch (e) {
-      setAiTxt("Erro ao conectar com a OpenAI. Verifique sua chave e conexão.");
+      setAiTxt("Erro ao conectar com o Groq. Verifique sua chave e conexão.");
     }
     setLoading(false);
   },[f]);
@@ -351,7 +351,7 @@ function Simulador(){
       <div className="sec-hd">
         <div className="sec-cat">Crédito Imobiliário</div>
         <h2 className="sec-title">Simulador com <em>análise de IA</em></h2>
-        <p className="sec-sub">Calcule sua parcela e receba uma avaliação personalizada.</p>
+        <p className="sec-sub">Calcule sua parcela e receba uma avaliação personalizada via Groq AI.</p>
       </div>
 
       <div className="card">
@@ -362,7 +362,7 @@ function Simulador(){
           <div className="field"><label>Entrada</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.entrada} onChange={set("entrada")} inputMode="numeric"/></div></div>
           <div className="field"><label>Prazo (anos)</label><div className="inp-wrap"><input className="inp np ns" value={f.prazo} onChange={set("prazo")} inputMode="numeric"/><span className="inp-suf">anos</span></div></div>
           <div className="field"><label>Taxa de juros (% a.a.)</label><div className="inp-wrap"><input className="inp np ns" value={f.taxa} onChange={set("taxa")} inputMode="decimal"/><span className="inp-suf">% a.a.</span></div></div>
-          <button className="btn-gold full" onClick={calcular} disabled={loading}>{loading ? "Analisando..." : "Calcular e Analisar com IA"}</button>
+          <button className="btn-gold full" onClick={calcular} disabled={loading}>{loading ? "Analisando com Groq..." : "Calcular e Analisar com IA"}</button>
         </div>
       </div>
 
@@ -376,13 +376,13 @@ function Simulador(){
 
           <div className="ai-box">
             <div className="ai-hd">
-              <div className="ai-badge">Manus AI</div>
+              <div className="ai-badge">Groq AI</div>
               <div className="ai-hdtxt">Análise Estratégica</div>
             </div>
             {loading ? (
               <div className="ai-loading">
                 <div className="ai-dots"><span/><span/><span/></div>
-                <span>Processando dados econômicos...</span>
+                <span>Processando dados com Llama 3.3...</span>
               </div>
             ) : (
               <div className="ai-txt">{aiTxt}</div>
