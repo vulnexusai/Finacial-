@@ -1,21 +1,26 @@
-// api/cotacoes.js — VERSÃO 5 FINAL (Yahoo Finance Chart API)
+// api/cotacoes.js — VERSÃO 6 (Com Variação Percentual Corrigida)
 // Fontes:
-//   • Câmbio e Metais: fawazahmed0 Currency API (via latest.currency-api.pages.dev)
+//   • Câmbio e Metais: fawazahmed0 Currency API (com dados históricos de ontem)
 //   • Criptomoedas: CoinGecko Public API
-//   • Índices e Petróleo: Yahoo Finance Chart API (query2.finance.yahoo.com/v8/finance/chart)
+//   • Índices e Petróleo: Yahoo Finance Chart API
 
 export default async function handler(req, res) {
   try {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
+    
     const ymd = (d) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+    const todayStr = ymd(today);
+    const yesterdayStr = ymd(yesterday);
+
     // ── 1. BUSCAR CÂMBIO E METAIS (USD, BRL, EUR, XAU, XAG) ───────────────────
+    // Usar a API com histórico para obter dados de ontem
     const [fxTodayRes, fxYestRes] = await Promise.all([
       fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
-      fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
+      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${yesterdayStr}/v1/currencies/usd.json`),
     ]);
 
     const fxToday = fxTodayRes.ok ? await fxTodayRes.json() : null;
@@ -65,10 +70,10 @@ export default async function handler(req, res) {
     // ── MONTAGEM DO OBJETO DE RESPOSTA ───────────────────────────────────
     const data = {};
 
-    // CÂMBIO (Baseado na Currency API)
-    if (fxToday && fxYest) {
+    // CÂMBIO (Baseado na Currency API com histórico)
+    if (fxToday) {
       const usdBrl = fxToday.usd.brl;
-      const usdBrlYest = fxYest.usd.brl;
+      const usdBrlYest = fxYest?.usd?.brl || usdBrl; // Fallback se ontem não estiver disponível
       data.USDBRL = {
         bid: usdBrl.toFixed(4),
         pctChange: pct(usdBrl, usdBrlYest),
@@ -76,7 +81,7 @@ export default async function handler(req, res) {
       };
 
       const eurBrl = (1 / fxToday.usd.eur) * usdBrl;
-      const eurBrlYest = (1 / fxYest.usd.eur) * usdBrlYest;
+      const eurBrlYest = fxYest ? (1 / fxYest.usd.eur) * fxYest.usd.brl : eurBrl;
       data.EURBRL = {
         bid: eurBrl.toFixed(4),
         pctChange: pct(eurBrl, eurBrlYest),
@@ -85,7 +90,7 @@ export default async function handler(req, res) {
 
       // METAIS (XAU/XAG convertidos para BRL/oz)
       const xauBrl = (1 / fxToday.usd.xau);
-      const xauBrlYest = (1 / fxYest.usd.xau);
+      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) : xauBrl;
       data.XAUBRL = {
         bid: xauBrl.toFixed(2),
         pctChange: pct(xauBrl, xauBrlYest),
@@ -93,7 +98,7 @@ export default async function handler(req, res) {
       };
 
       const xagBrl = (1 / fxToday.usd.xag);
-      const xagBrlYest = (1 / fxYest.usd.xag);
+      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) : xagBrl;
       data.XAGBRL = {
         bid: xagBrl.toFixed(2),
         pctChange: pct(xagBrl, xagBrlYest),
