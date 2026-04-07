@@ -166,8 +166,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 `;
 
 const MARKET_DEF = [
+  // CÂMBIO
   { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$", cat:"Câmbio" },
   { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$", cat:"Câmbio" },
+  
+  // METAIS PRECIOSOS
+  { key:"XAU-BRL", label:"Ouro/Real",     icon:"🟨", unit:"R$", cat:"Metais" },
+  { key:"XAG-BRL", label:"Prata/Real",    icon:"⚪", unit:"R$", cat:"Metais" },
+  
+  // COMMODITIES
+  { key:"OIL",     label:"Petróleo Brent", icon:"🛢️", unit:"USD", cat:"Commodities" },
+  
+  // ÍNDICES MUNDIAIS
+  { key:"SPX",     label:"S&P 500",       icon:"🇺🇸", unit:"Pts", cat:"Bolsas" },
+  { key:"NAS",     label:"Nasdaq",        icon:"💻", unit:"Pts", cat:"Bolsas" },
+  { key:"IBOV",    label:"IBOVESPA",      icon:"🇧🇷", unit:"Pts", cat:"Bolsas" },
+  
+  // CRIPTOMOEDAS
   { key:"BTC-BRL", label:"Bitcoin/Real",  icon:"₿",  unit:"R$", cat:"Cripto" },
   { key:"ETH-BRL", label:"Ethereum/Real", icon:"Ξ",  unit:"R$", cat:"Cripto" },
 ];
