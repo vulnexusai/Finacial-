@@ -227,7 +227,7 @@ function Cotacoes(){
         {BCB_DEF.map(b => (
           <div className="bcb-chip" key={b.key}>
             <div className="bcb-chip-label">{b.label}</div>
-            {bcbData[b.key] 
+            {bcbData[b.key]
               ? <div className="bcb-chip-val">{fmtNum(parseFloat(bcbData[b.key]), 2)}%</div>
               : <div className="bcb-chip-val cmd-skeleton" style={{height:28,width:80,borderRadius:4}}>&nbsp;</div>
             }
@@ -308,25 +308,15 @@ function Simulador(){
     const juros=total-(imovel-entrada);
     const entPct=(entrada/imovel)*100;
     setRes({renda,imovel,entrada,prazo,taxa,parcela,comp,total,juros,entPct});
-    
-    setAiTxt(""); 
+
+    setAiTxt("");
     setLoading(true);
 
-    // Integração com Groq (Llama 3.3 70B)
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-    if (!apiKey) {
-      setAiTxt("Configure sua VITE_GROQ_API_KEY no arquivo .env para receber análise de IA.");
-      setLoading(false);
-      return;
-    }
-
+    // Integração com Groq via proxy seguro (chave fica no servidor)
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await fetch("/api/groq", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [{
@@ -341,7 +331,7 @@ function Simulador(){
       const data = await response.json();
       setAiTxt(data.choices[0].message.content);
     } catch (e) {
-      setAiTxt("Erro ao conectar com o Groq. Verifique sua chave e conexão.");
+      setAiTxt("Erro ao conectar. Tente novamente.");
     }
     setLoading(false);
   },[f]);
@@ -361,144 +351,4 @@ function Simulador(){
           <div className="field"><label>Valor do imóvel</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.imovel} onChange={set("imovel")} inputMode="numeric"/></div></div>
           <div className="field"><label>Entrada</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.entrada} onChange={set("entrada")} inputMode="numeric"/></div></div>
           <div className="field"><label>Prazo (anos)</label><div className="inp-wrap"><input className="inp np ns" value={f.prazo} onChange={set("prazo")} inputMode="numeric"/><span className="inp-suf">anos</span></div></div>
-          <div className="field"><label>Taxa de juros (% a.a.)</label><div className="inp-wrap"><input className="inp np ns" value={f.taxa} onChange={set("taxa")} inputMode="decimal"/><span className="inp-suf">% a.a.</span></div></div>
-          <button className="btn-gold full" onClick={calcular} disabled={loading}>{loading ? "Analisando com Groq..." : "Calcular e Analisar com IA"}</button>
-        </div>
-      </div>
-
-      {res && (
-        <>
-          <div className="res-grid">
-            <div className="res-item"><div className="res-lbl">Parcela mensal</div><div className="res-val o">{fmtBRL(res.parcela)}</div><div className="res-sub">Tabela PRICE</div></div>
-            <div className="res-item"><div className="res-lbl">Comprometimento</div><div className={`res-val ${res.comp>30?"r":"g"}`}>{res.comp.toFixed(1)}%</div><div className="res-sub">Máximo ideal: 30%</div></div>
-            <div className="res-item"><div className="res-lbl">Total de juros</div><div className="res-val r">{fmtBRL(res.juros)}</div><div className="res-sub">Custo do crédito</div></div>
-          </div>
-
-          <div className="ai-box">
-            <div className="ai-hd">
-              <div className="ai-badge">Groq AI</div>
-              <div className="ai-hdtxt">Análise Estratégica</div>
-            </div>
-            {loading ? (
-              <div className="ai-loading">
-                <div className="ai-dots"><span/><span/><span/></div>
-                <span>Processando dados com Llama 3.3...</span>
-              </div>
-            ) : (
-              <div className="ai-txt">{aiTxt}</div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────
-// COMPARADOR SECTION
-// ──────────────────────────────────────────────
-function Comparador(){
-  const [valor,setValor]=useState("10000");
-  const [meses,setMeses]=useState("12");
-
-  const v=parseFloat(valor)||0;
-  const m=parseInt(meses)||12;
-
-  const results = INVEST.map(inv=>{
-    const taxaLiq = inv.ir ? inv.rate * 0.85 : inv.rate;
-    const final = v * Math.pow(1 + taxaLiq/100, m/12);
-    return {...inv, final};
-  }).sort((a,b)=>b.final - a.final);
-
-  return(
-    <div>
-      <div className="sec-hd">
-        <div className="sec-cat">Investimentos</div>
-        <h2 className="sec-title">Onde seu dinheiro <em>rende mais</em></h2>
-        <p className="sec-sub">Comparação líquida (pós-impostos) baseada nas taxas atuais de mercado.</p>
-      </div>
-
-      <div className="card">
-        <div className="cmp-inputs">
-          <div className="cmp-inp-wrap">
-            <label className="cmp-inp-lbl">Quanto quer investir?</label>
-            <div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={valor} onChange={e=>setValor(e.target.value)} inputMode="numeric"/></div>
-          </div>
-          <div className="cmp-inp-wrap">
-            <label className="cmp-inp-lbl">Por quanto tempo?</label>
-            <div className="inp-wrap"><input className="inp np ns" value={meses} onChange={e=>setMeses(e.target.value)} inputMode="numeric"/><span className="inp-suf">meses</span></div>
-          </div>
-        </div>
-
-        <div className="cmp-table-wrap">
-          <table className="cmp-table">
-            <thead>
-              <tr>
-                <th>Investimento</th>
-                <th>Taxa Est.</th>
-                <th>Liquidez</th>
-                <th>Resultado Final</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r,idx)=>(
-                <tr key={r.name}>
-                  <td>
-                    <span className="inv-name">{r.name}</span>
-                    <span className="inv-tag">{r.tag}</span>
-                  </td>
-                  <td>{r.rate}% a.a.</td>
-                  <td>{r.liq}</td>
-                  <td>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <strong>{fmtBRL(r.final)}</strong>
-                      {idx===0 && <span className="badge-best">Melhor Opção</span>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────
-// APP
-// ──────────────────────────────────────────────
-export default function App(){
-  const [tab,setTab]=useState("mercados");
-  const tabs=[
-    {id:"mercados",label:"📊 Mercados"},
-    {id:"simulador",label:"🏠 Simulador"},
-    {id:"comparador",label:"📈 Comparador"},
-  ];
-
-  return(
-    <>
-      <style>{S}</style>
-      <div className="root">
-        <div className="noise"/>
-        <header className="hdr">
-          <div className="logo" onClick={()=>setTab("mercados")}>
-            SimuladorFácil <small>Ferramentas Financeiras</small>
-          </div>
-          <div className="tabs">
-            {tabs.map(t=>(
-              <button key={t.id} className={`tab ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </header>
-        <main className="main">
-          {tab==="mercados"  && <Cotacoes/>}
-          {tab==="simulador" && <Simulador/>}
-          {tab==="comparador"&& <Comparador/>}
-        </main>
-      </div>
-    </>
-  );
-}
+          <div className="field"><label>Taxa 
