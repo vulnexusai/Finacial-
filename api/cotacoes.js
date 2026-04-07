@@ -1,8 +1,8 @@
-// api/cotacoes.js — VERSÃO 4 CORRIGIDA (Com Yahoo Finance Crumb)
+// api/cotacoes.js — VERSÃO 5 FINAL (Yahoo Finance Chart API)
 // Fontes:
-//   • Câmbio e Metais: fawazahmed0 Currency API (via jsDelivr)
+//   • Câmbio e Metais: fawazahmed0 Currency API (via latest.currency-api.pages.dev)
 //   • Criptomoedas: CoinGecko Public API
-//   • Índices e Petróleo: Yahoo Finance API (com crumb para autenticação)
+//   • Índices e Petróleo: Yahoo Finance Chart API (query2.finance.yahoo.com/v8/finance/chart)
 
 export default async function handler(req, res) {
   try {
@@ -14,8 +14,8 @@ export default async function handler(req, res) {
 
     // ── 1. BUSCAR CÂMBIO E METAIS (USD, BRL, EUR, XAU, XAG) ───────────────────
     const [fxTodayRes, fxYestRes] = await Promise.all([
-      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json`),
-      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${ymd(yesterday)}/v1/currencies/usd.json`),
+      fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
+      fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
     ]);
 
     const fxToday = fxTodayRes.ok ? await fxTodayRes.json() : null;
@@ -27,34 +27,36 @@ export default async function handler(req, res) {
     );
     const cg = cgRes.ok ? await cgRes.json() : {};
 
-    // ── 3. BUSCAR ÍNDICES E COMMODITIES (Yahoo Finance com Crumb) ────────────
-    let yfResults = [];
-    try {
-      // Obter crumb para autenticação
-      const crumbRes = await fetch(`https://query1.finance.yahoo.com/v1/test/getcrumb`);
-      if (crumbRes.ok) {
-        const crumb = await crumbRes.text();
+    // ── 3. BUSCAR ÍNDICES E COMMODITIES (Yahoo Finance Chart API) ────────────
+    const symbols = ["^GSPC", "^IXIC", "^BVSP", "BZ=F"];
+    const yfResults = {};
 
-        // Usar crumb para fazer a requisição de cotações
+    for (const symbol of symbols) {
+      try {
         const yfRes = await fetch(
-          `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^GSPC,^IXIC,^BVSP,BZ=F&crumb=${encodeURIComponent(crumb)}`,
+          `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d`,
           {
             headers: {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+              "Accept": "application/json",
             },
           }
         );
 
         if (yfRes.ok) {
           const yfData = await yfRes.json();
-          yfResults = yfData.quoteResponse?.result || [];
+          const meta = yfData.chart?.result?.[0]?.meta;
+          if (meta) {
+            yfResults[symbol] = {
+              price: meta.regularMarketPrice,
+              prevClose: meta.chartPreviousClose,
+            };
+          }
         }
+      } catch (e) {
+        console.warn(`Aviso: Falha ao buscar ${symbol}:`, e.message);
       }
-    } catch (e) {
-      console.warn("Aviso: Falha ao buscar dados do Yahoo Finance:", e.message);
     }
-
-    const getIdx = (sym) => yfResults.find((r) => r.symbol === sym) || {};
 
     // ── FUNÇÕES AUXILIARES ───────────────────────────────────────────────────
     const pct = (now, prev) =>
@@ -111,32 +113,32 @@ export default async function handler(req, res) {
       name: "Ethereum/Real",
     };
 
-    // ÍNDICES E PETRÓLEO (Baseado no Yahoo Finance com Crumb)
-    const sp500 = getIdx("^GSPC");
+    // ÍNDICES E PETRÓLEO (Baseado no Yahoo Finance Chart API)
+    const sp500 = yfResults["^GSPC"];
     data.SPX = {
-      bid: sp500.regularMarketPrice?.toFixed(2) || "0",
-      pctChange: sp500.regularMarketChangePercent?.toFixed(2) || "0.00",
+      bid: sp500?.price?.toFixed(2) || "0",
+      pctChange: sp500 ? pct(sp500.price, sp500.prevClose) : "0.00",
       name: "S&P 500 Index",
     };
 
-    const nasdaq = getIdx("^IXIC");
+    const nasdaq = yfResults["^IXIC"];
     data.NAS = {
-      bid: nasdaq.regularMarketPrice?.toFixed(2) || "0",
-      pctChange: nasdaq.regularMarketChangePercent?.toFixed(2) || "0.00",
+      bid: nasdaq?.price?.toFixed(2) || "0",
+      pctChange: nasdaq ? pct(nasdaq.price, nasdaq.prevClose) : "0.00",
       name: "Nasdaq Composite",
     };
 
-    const ibov = getIdx("^BVSP");
+    const ibov = yfResults["^BVSP"];
     data.IBOV = {
-      bid: ibov.regularMarketPrice?.toFixed(0) || "0",
-      pctChange: ibov.regularMarketChangePercent?.toFixed(2) || "0.00",
+      bid: ibov?.price?.toFixed(0) || "0",
+      pctChange: ibov ? pct(ibov.price, ibov.prevClose) : "0.00",
       name: "IBOVESPA (Brasil)",
     };
 
-    const brent = getIdx("BZ=F");
+    const brent = yfResults["BZ=F"];
     data.OIL = {
-      bid: brent.regularMarketPrice?.toFixed(2) || "0",
-      pctChange: brent.regularMarketChangePercent?.toFixed(2) || "0.00",
+      bid: brent?.price?.toFixed(2) || "0",
+      pctChange: brent ? pct(brent.price, brent.prevClose) : "0.00",
       name: "Petróleo Brent (USD)",
     };
 
