@@ -188,14 +188,13 @@ function Cotacoes(){
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const coins = MARKET_DEF.map(m => m.key).join(",");
-      const resAwesome = await fetch(`https://economia.awesomeapi.com.br/json/last/${coins}`);
+      const resAwesome = await fetch(`/api/cotacoes`);
       const dataAwesome = await resAwesome.json();
       setMarketData(dataAwesome);
 
       const bcbResults = {};
       for (const b of BCB_DEF) {
-        const resBcb = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${b.key}/dados/ultimos/1?formato=json`);
+        const resBcb = await fetch(`/api/bcb?serie=${b.key}`);
         const dataBcb = await resBcb.json();
         if (dataBcb && dataBcb.length > 0) {
           bcbResults[b.key] = dataBcb[0].valor;
