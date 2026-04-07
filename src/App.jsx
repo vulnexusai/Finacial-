@@ -144,10 +144,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 `;
 
 const MARKET_DEF = [
-  { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$",      cat:"Câmbio" },
-  { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$",      cat:"Câmbio" },
-  { key:"BTC-BRL", label:"Bitcoin/Real",  icon:"₿",  unit:"R$",      cat:"Cripto" },
-  { key:"ETH-BRL", label:"Ethereum/Real", icon:"Ξ",  unit:"R$",      cat:"Cripto" },
+  { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$", cat:"Câmbio" },
+  { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$", cat:"Câmbio" },
+  { key:"BTC-BRL", label:"Bitcoin/Real",  icon:"₿",  unit:"R$", cat:"Cripto" },
+  { key:"ETH-BRL", label:"Ethereum/Real", icon:"Ξ",  unit:"R$", cat:"Cripto" },
 ];
 
 const BCB_DEF = [
@@ -156,23 +156,23 @@ const BCB_DEF = [
 ];
 
 const INVEST = [
-  { name:"Poupança",           tag:"isento de IR",  rate: 7.6,  ir:false, liq:"Imediata",  min:"R$ 1"     },
-  { name:"Tesouro Selic",      tag:"gov. federal",  rate:12.2,  ir:true,  liq:"D+1",       min:"R$ 30"    },
-  { name:"CDB 100% CDI",       tag:"banco digital", rate:12.3,  ir:true,  liq:"D+0/D+1",   min:"R$ 1"     },
-  { name:"CDB 110% CDI",       tag:"prazo 12m+",    rate:13.5,  ir:true,  liq:"No venc.",  min:"R$ 500"   },
-  { name:"LCI 93% CDI",        tag:"isento de IR",  rate:11.4,  ir:false, liq:"90 dias",   min:"R$ 1.000" },
-  { name:"LCA 92% CDI",        tag:"isento de IR",  rate:11.3,  ir:false, liq:"90 dias",   min:"R$ 1.000" },
-  { name:"FII (DY médio)",     tag:"isento IR prov",rate:11.8,  ir:false, liq:"D+2 bolsa", min:"R$ 10"    },
-  { name:"Debênture Inc. IPCA+7%",tag:"isento de IR",rate:14.2, ir:false, liq:"Sec. baixa",min:"R$ 1.000" },
+  { name:"Poupança",              tag:"isento de IR",   rate: 7.6, ir:false, liq:"Imediata",   min:"R$ 1"     },
+  { name:"Tesouro Selic",         tag:"gov. federal",   rate:12.2, ir:true,  liq:"D+1",        min:"R$ 30"    },
+  { name:"CDB 100% CDI",          tag:"banco digital",  rate:12.3, ir:true,  liq:"D+0/D+1",    min:"R$ 1"     },
+  { name:"CDB 110% CDI",          tag:"prazo 12m+",     rate:13.5, ir:true,  liq:"No venc.",   min:"R$ 500"   },
+  { name:"LCI 93% CDI",           tag:"isento de IR",   rate:11.4, ir:false, liq:"90 dias",    min:"R$ 1.000" },
+  { name:"LCA 92% CDI",           tag:"isento de IR",   rate:11.3, ir:false, liq:"90 dias",    min:"R$ 1.000" },
+  { name:"FII (DY médio)",        tag:"isento IR prov", rate:11.8, ir:false, liq:"D+2 bolsa",  min:"R$ 10"    },
+  { name:"Debênture Inc. IPCA+7%",tag:"isento de IR",   rate:14.2, ir:false, liq:"Sec. baixa", min:"R$ 1.000" },
 ];
 
-function fmtBRL(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
-function fmtPct(v){return v.toFixed(2).replace(".",",") + "%";}
-function fmtNum(v,dec=2){return v.toLocaleString("pt-BR",{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+function fmtBRL(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function fmtPct(v){ return v.toFixed(2).replace(".",",") + "%"; }
+function fmtNum(v,dec=2){ return v.toLocaleString("pt-BR",{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
 
 function calcParcela(val,entrada,taxaAA,anos){
-  const p=val-entrada,i=taxaAA/100/12,n=anos*12;
-  if(i===0)return p/n;
+  const p=val-entrada, i=taxaAA/100/12, n=anos*12;
+  if(i===0) return p/n;
   return (p*i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
 }
 
@@ -188,13 +188,11 @@ function Cotacoes(){
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      // 1. AwesomeAPI - Moedas e Cripto
       const coins = MARKET_DEF.map(m => m.key).join(",");
       const resAwesome = await fetch(`https://economia.awesomeapi.com.br/json/last/${coins}`);
       const dataAwesome = await resAwesome.json();
       setMarketData(dataAwesome);
 
-      // 2. BCB/SGS - Selic e IPCA
       const bcbResults = {};
       for (const b of BCB_DEF) {
         const resBcb = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${b.key}/dados/ultimos/1?formato=json`);
@@ -242,7 +240,7 @@ function Cotacoes(){
         </div>
         <button className="refresh-btn" onClick={fetchAll} disabled={loading}>
           <span className={loading?"spin":""}>↻</span>
-          {loading?"Buscando...":"Atualizar"}
+          {loading ? "Buscando..." : "Atualizar"}
         </button>
       </div>
 
@@ -254,7 +252,7 @@ function Cotacoes(){
               <div className="cmd-cat-title">{cat}</div>
               <div className="cmd-grid">
                 {items.map(item => {
-                  const v = marketData?.[item.key.replace("-", "")];
+                  const v = marketData?.[item.key.replace("-","")];
                   const chg = v ? parseFloat(v.pctChange) : 0;
                   const cls = chg > 0 ? "chg-up" : chg < 0 ? "chg-dn" : "chg-flat";
                   const sign = chg > 0 ? "+" : "";
@@ -263,13 +261,13 @@ function Cotacoes(){
                       <div className="cmd-card-top">
                         <span className="cmd-icon">{item.icon}</span>
                         {v
-                          ? <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg, 2)}%</span>
+                          ? <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg,2)}%</span>
                           : <span className="cmd-skeleton" style={{width:48,height:20,borderRadius:100}}>&nbsp;</span>
                         }
                       </div>
                       <div className="cmd-name">{item.label}</div>
                       {v
-                        ? <div className="cmd-price">{item.unit} {fmtNum(parseFloat(v.bid), 2)}</div>
+                        ? <div className="cmd-price">{item.unit} {fmtNum(parseFloat(v.bid),2)}</div>
                         : <div className="cmd-skeleton" style={{height:26,width:90,borderRadius:4,marginTop:4}}>&nbsp;</div>
                       }
                       <div className="cmd-unit">{item.unit} / {item.key.split("-")[0]}</div>
@@ -289,54 +287,52 @@ function Cotacoes(){
 // SIMULADOR SECTION
 // ──────────────────────────────────────────────
 function Simulador(){
-  const [f,setF]=useState({renda:"8000",imovel:"400000",entrada:"80000",prazo:"30",taxa:"10.49"});
-  const [res,setRes]=useState(null);
-  const [aiTxt,setAiTxt]=useState("");
-  const [loading,setLoading]=useState(false);
+  const [f,setF] = useState({renda:"8000",imovel:"400000",entrada:"80000",prazo:"30",taxa:"10.49"});
+  const [res,setRes] = useState(null);
+  const [aiTxt,setAiTxt] = useState("");
+  const [loading,setLoading] = useState(false);
 
-  const set=k=>e=>setF(p=>({...p,[k]:e.target.value}));
+  const set = k => e => setF(p => ({...p,[k]:e.target.value}));
 
-  const calcular=useCallback(async()=>{
-    const renda=parseFloat(f.renda)||0;
-    const imovel=parseFloat(f.imovel)||0;
-    const entrada=parseFloat(f.entrada)||0;
-    const prazo=parseInt(f.prazo)||30;
-    const taxa=parseFloat(f.taxa.replace(",","."))||10.49;
-    const parcela=calcParcela(imovel,entrada,taxa,prazo);
-    const comp=(parcela/renda)*100;
-    const total=parcela*prazo*12;
-    const juros=total-(imovel-entrada);
-    const entPct=(entrada/imovel)*100;
+  const calcular = useCallback(async () => {
+    const renda   = parseFloat(f.renda) || 0;
+    const imovel  = parseFloat(f.imovel) || 0;
+    const entrada = parseFloat(f.entrada) || 0;
+    const prazo   = parseInt(f.prazo) || 30;
+    const taxa    = parseFloat(f.taxa.replace(",",".")) || 10.49;
+    const parcela = calcParcela(imovel,entrada,taxa,prazo);
+    const comp    = (parcela/renda)*100;
+    const total   = parcela*prazo*12;
+    const juros   = total-(imovel-entrada);
+    const entPct  = (entrada/imovel)*100;
     setRes({renda,imovel,entrada,prazo,taxa,parcela,comp,total,juros,entPct});
 
     setAiTxt("");
     setLoading(true);
-
-    // Integração com Groq via proxy seguro (chave fica no servidor)
     try {
       const response = await fetch("/api/groq", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [{
-            role: "system",
-            content: "Você é um consultor financeiro brasileiro especialista em crédito imobiliário. Analise com tom direto, humano e útil. Use o contexto econômico brasileiro atual."
-          }, {
-            role: "user",
-            content: `Analise esta simulação: Renda mensal ${fmtBRL(renda)}, Valor do Imóvel ${fmtBRL(imovel)}, Entrada ${fmtBRL(entrada)} (${entPct.toFixed(1)}%), Parcela ${fmtBRL(parcela)} (${comp.toFixed(1)}% da renda). Total de juros: ${fmtBRL(juros)}. O que você recomenda?`
+          model:"llama-3.3-70b-versatile",
+          messages:[{
+            role:"system",
+            content:"Você é um consultor financeiro brasileiro especialista em crédito imobiliário. Analise com tom direto, humano e útil. Use o contexto econômico brasileiro atual."
+          },{
+            role:"user",
+            content:`Analise esta simulação: Renda mensal ${fmtBRL(renda)}, Valor do Imóvel ${fmtBRL(imovel)}, Entrada ${fmtBRL(entrada)} (${entPct.toFixed(1)}%), Parcela ${fmtBRL(parcela)} (${comp.toFixed(1)}% da renda). Total de juros: ${fmtBRL(juros)}. O que você recomenda?`
           }]
         })
       });
       const data = await response.json();
       setAiTxt(data.choices[0].message.content);
-    } catch (e) {
+    } catch(e) {
       setAiTxt("Erro ao conectar. Tente novamente.");
     }
     setLoading(false);
   },[f]);
 
-  return(
+  return (
     <div>
       <div className="sec-hd">
         <div className="sec-cat">Crédito Imobiliário</div>
@@ -347,8 +343,253 @@ function Simulador(){
       <div className="card">
         <div className="card-title">Dados do financiamento</div>
         <div className="form-grid">
-          <div className="field"><label>Renda mensal bruta</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.renda} onChange={set("renda")} inputMode="numeric"/></div></div>
-          <div className="field"><label>Valor do imóvel</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.imovel} onChange={set("imovel")} inputMode="numeric"/></div></div>
-          <div className="field"><label>Entrada</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.entrada} onChange={set("entrada")} inputMode="numeric"/></div></div>
-          <div className="field"><label>Prazo (anos)</label><div className="inp-wrap"><input className="inp np ns" value={f.prazo} onChange={set("prazo")} inputMode="numeric"/><span className="inp-suf">anos</span></div></div>
-          <div className="field"><label>Taxa 
+          <div className="field">
+            <label>Renda mensal bruta</label>
+            <div className="inp-wrap">
+              <span className="inp-pre">R$</span>
+              <input className="inp" value={f.renda} onChange={set("renda")} inputMode="numeric"/>
+            </div>
+          </div>
+          <div className="field">
+            <label>Valor do imóvel</label>
+            <div className="inp-wrap">
+              <span className="inp-pre">R$</span>
+              <input className="inp" value={f.imovel} onChange={set("imovel")} inputMode="numeric"/>
+            </div>
+          </div>
+          <div className="field">
+            <label>Entrada</label>
+            <div className="inp-wrap">
+              <span className="inp-pre">R$</span>
+              <input className="inp" value={f.entrada} onChange={set("entrada")} inputMode="numeric"/>
+            </div>
+          </div>
+          <div className="field">
+            <label>Prazo (anos)</label>
+            <div className="inp-wrap">
+              <input className="inp np ns" value={f.prazo} onChange={set("prazo")} inputMode="numeric"/>
+              <span className="inp-suf">anos</span>
+            </div>
+          </div>
+          <div className="field">
+            <label>Taxa de juros a.a.</label>
+            <div className="inp-wrap">
+              <input className="inp np ns" value={f.taxa} onChange={set("taxa")} inputMode="decimal"/>
+              <span className="inp-suf">%</span>
+            </div>
+          </div>
+        </div>
+        <button className="btn-gold" onClick={calcular} disabled={loading}>
+          {loading ? "Calculando..." : "Calcular financiamento"}
+        </button>
+      </div>
+
+      {res && (
+        <>
+          <div className="res-grid">
+            <div className="res-item">
+              <div className="res-lbl">Parcela mensal</div>
+              <div className="res-val o">{fmtBRL(res.parcela)}</div>
+            </div>
+            <div className="res-item">
+              <div className="res-lbl">Comprometimento</div>
+              <div className={`res-val ${res.comp>30?"r":"g"}`}>{fmtPct(res.comp)}</div>
+              <div className="res-sub">da renda mensal</div>
+            </div>
+            <div className="res-item">
+              <div className="res-lbl">Total pago</div>
+              <div className="res-val">{fmtBRL(res.total)}</div>
+            </div>
+            <div className="res-item">
+              <div className="res-lbl">Total de juros</div>
+              <div className="res-val r">{fmtBRL(res.juros)}</div>
+            </div>
+            <div className="res-item">
+              <div className="res-lbl">Entrada</div>
+              <div className="res-val">{fmtPct(res.entPct)}</div>
+              <div className="res-sub">do valor do imóvel</div>
+            </div>
+            <div className="res-item">
+              <div className="res-lbl">Prazo total</div>
+              <div className="res-val">{res.prazo*12}</div>
+              <div className="res-sub">parcelas</div>
+            </div>
+          </div>
+
+          {res.comp > 30 && (
+            <div className="callout callout-warn">
+              ⚠️ A parcela comprometeria {fmtPct(res.comp)} da sua renda. O recomendado é até 30%.
+            </div>
+          )}
+
+          <div className="ai-box">
+            <div className="ai-hd">
+              <span className="ai-badge">IA</span>
+              <span className="ai-hdtxt">Análise do consultor</span>
+            </div>
+            {loading && (
+              <div className="ai-loading">
+                <div className="ai-dots"><span/><span/><span/></div>
+                Analisando...
+              </div>
+            )}
+            {aiTxt && <div className="ai-txt">{aiTxt}</div>}
+          </div>
+
+          <div className="aff-box">
+            <div className="aff-lbl">Simule com bancos reais</div>
+            <div className="aff-links">
+              <a className="aff-link" href="https://www.caixa.gov.br/voce/habitacao" target="_blank" rel="noreferrer">
+                <span>🏦 Caixa Econômica Federal</span><span className="aff-arrow">→</span>
+              </a>
+              <a className="aff-link" href="https://www.santander.com.br/imobiliario" target="_blank" rel="noreferrer">
+                <span>🏦 Santander Imóveis</span><span className="aff-arrow">→</span>
+              </a>
+              <a className="aff-link" href="https://www.itau.com.br/emprestimos-financiamentos/imobiliario/" target="_blank" rel="noreferrer">
+                <span>🏦 Itaú Imóveis</span><span className="aff-arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// COMPARADOR SECTION
+// ──────────────────────────────────────────────
+function Comparador(){
+  const [valor, setValor] = useState("10000");
+  const [meses, setMeses] = useState("12");
+
+  const calcRend = (inv, v, m) => {
+    const vl = parseFloat(v) || 0;
+    const taxaM = inv.rate / 100 / 12;
+    const bruto = vl * (Math.pow(1 + taxaM, m) - 1);
+    let ir = 0;
+    if (inv.ir) {
+      const aliq = m <= 6 ? 0.225 : m <= 12 ? 0.2 : m <= 24 ? 0.175 : 0.15;
+      ir = bruto * aliq;
+    }
+    return { bruto, liquido: bruto - ir };
+  };
+
+  const m = parseInt(meses) || 12;
+  const results = INVEST
+    .map(inv => ({ ...inv, ...calcRend(inv, valor, m) }))
+    .sort((a, b) => b.liquido - a.liquido);
+  const best = results[0]?.liquido;
+
+  return (
+    <div>
+      <div className="sec-hd">
+        <div className="sec-cat">Renda Fixa</div>
+        <h2 className="sec-title">Compare <em>investimentos</em></h2>
+        <p className="sec-sub">Veja o rendimento líquido real de cada alternativa.</p>
+      </div>
+
+      <div className="card">
+        <div className="cmp-inputs">
+          <div className="cmp-inp-wrap">
+            <div className="cmp-inp-lbl">Valor a investir</div>
+            <div className="inp-wrap">
+              <span className="inp-pre">R$</span>
+              <input className="inp" value={valor} onChange={e => setValor(e.target.value)} inputMode="numeric"/>
+            </div>
+          </div>
+          <div className="cmp-inp-wrap">
+            <div className="cmp-inp-lbl">Período</div>
+            <div className="inp-wrap">
+              <input className="inp np ns" value={meses} onChange={e => setMeses(e.target.value)} inputMode="numeric"/>
+              <span className="inp-suf">meses</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="cmp-table-wrap">
+          <table className="cmp-table">
+            <thead>
+              <tr>
+                <th>Investimento</th>
+                <th>Taxa</th>
+                <th>Liquidez</th>
+                <th>Mín.</th>
+                <th>Rendimento bruto</th>
+                <th>Rendimento líquido</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((inv, i) => (
+                <tr key={inv.name}>
+                  <td>
+                    <span className="inv-name">{inv.name}</span>
+                    <span className="inv-tag">{inv.tag}</span>
+                  </td>
+                  <td>{fmtNum(inv.rate,1)}% a.a.</td>
+                  <td><span className="badge-ir">{inv.liq}</span></td>
+                  <td>{inv.min}</td>
+                  <td>{fmtBRL(inv.bruto)}</td>
+                  <td>
+                    {fmtBRL(inv.liquido)}
+                    {inv.liquido === best && i === 0 && (
+                      <> <span className="badge-best">melhor</span></>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="callout" style={{marginTop:20}}>
+          💡 Rendimentos calculados com IR regressivo (tabela oficial). LCI/LCA/Poupança/FII/Debêntures incentivadas são isentos de IR para pessoa física.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// APP ROOT
+// ──────────────────────────────────────────────
+const TABS = [
+  { id:"cotacoes",   label:"Cotações"    },
+  { id:"simulador",  label:"Simulador"   },
+  { id:"comparador", label:"Comparador"  },
+];
+
+export default function App(){
+  const [tab, setTab] = useState("cotacoes");
+
+  return (
+    <>
+      <style>{S}</style>
+      <div className="noise"/>
+      <div className="root">
+        <header className="hdr">
+          <div className="logo" onClick={() => setTab("cotacoes")}>
+            Finança<em style={{fontStyle:"italic"}}>BR</em>
+            <small>mercados · crédito · investimentos</small>
+          </div>
+          <nav className="tabs">
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                className={`tab${tab===t.id?" active":""}`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </header>
+        <main className="main">
+          {tab === "cotacoes"   && <Cotacoes/>}
+          {tab === "simulador"  && <Simulador/>}
+          {tab === "comparador" && <Comparador/>}
+        </main>
+      </div>
+    </>
+  );
+}
