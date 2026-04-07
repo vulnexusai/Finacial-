@@ -144,23 +144,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 `;
 
 const MARKET_DEF = [
-  { key:"gold",    label:"Ouro",          icon:"🥇", unit:"USD/oz",  cat:"Metais" },
-  { key:"silver",  label:"Prata",          icon:"🥈", unit:"USD/oz",  cat:"Metais" },
-  { key:"copper",  label:"Cobre",          icon:"🔶", unit:"USD/lb",  cat:"Metais" },
-  { key:"oil_wti", label:"Petróleo WTI",   icon:"🛢️", unit:"USD/bbl", cat:"Energia" },
-  { key:"oil_brent",label:"Petróleo Brent",icon:"🛢️", unit:"USD/bbl", cat:"Energia" },
-  { key:"soybeans",label:"Soja",           icon:"🌱", unit:"USD/bu",  cat:"Agrícolas" },
-  { key:"corn",    label:"Milho",          icon:"🌽", unit:"USD/bu",  cat:"Agrícolas" },
-  { key:"coffee",  label:"Café",           icon:"☕", unit:"USD/lb",  cat:"Agrícolas" },
-  { key:"wheat",   label:"Trigo",          icon:"🌾", unit:"USD/bu",  cat:"Agrícolas" },
-  { key:"usd_brl", label:"Dólar/Real",     icon:"💱", unit:"R$",      cat:"Câmbio" },
-  { key:"eur_brl", label:"Euro/Real",      icon:"🇪🇺", unit:"R$",      cat:"Câmbio" },
+  { key:"USD-BRL", label:"Dólar/Real",    icon:"🇺🇸", unit:"R$",      cat:"Câmbio" },
+  { key:"EUR-BRL", label:"Euro/Real",     icon:"🇪🇺", unit:"R$",      cat:"Câmbio" },
+  { key:"BTC-BRL", label:"Bitcoin/Real",  icon:"₿",  unit:"R$",      cat:"Cripto" },
+  { key:"ETH-BRL", label:"Ethereum/Real", icon:"Ξ",  unit:"R$",      cat:"Cripto" },
 ];
 
 const BCB_DEF = [
-  { key:"selic", label:"SELIC", sub:"Taxa básica de juros" },
-  { key:"cdi",   label:"CDI",   sub:"Taxa interbancária" },
-  { key:"ipca",  label:"IPCA",  sub:"Inflação 12 meses" },
+  { key:"11",  label:"SELIC", sub:"Taxa básica de juros" },
+  { key:"433", label:"IPCA",  sub:"Inflação mensal" },
 ];
 
 const INVEST = [
@@ -184,111 +176,103 @@ function calcParcela(val,entrada,taxaAA,anos){
   return (p*i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
 }
 
-function calcInvest(valor,meses,taxaAA,isIR){
-  const taxaLiq = isIR ? taxaAA * 0.85 : taxaAA;
-  const r = Math.pow(1+taxaLiq/100, meses/12) - 1;
-  return valor * (1 + r);
-}
-
 // ──────────────────────────────────────────────
 // COTAÇÕES SECTION
 // ──────────────────────────────────────────────
 function Cotacoes(){
-  const [data,setData]=useState(null);
-  const [loading,setLoading]=useState(false);
-  const [ts,setTs]=useState(null);
+  const [marketData, setMarketData] = useState(null);
+  const [bcbData, setBcbData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [ts, setTs] = useState(null);
 
-  const fetch_ = useCallback(async()=>{
+  const fetchAll = useCallback(async () => {
     setLoading(true);
-    try{
-      const res = await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:1500,
-          tools:[{type:"web_search_20250305",name:"web_search"}],
-          system:`You are a financial data API. Search the web for current real-time prices.
-Return ONLY a valid JSON object. No markdown. No backticks. No explanation. Start with { and end with }.
-JSON structure: {"gold":{"price":3250,"chg":0.5},"silver":{"price":32.5,"chg":-0.3},"copper":{"price":4.5,"chg":0.2},"oil_wti":{"price":71.2,"chg":-1.1},"oil_brent":{"price":75.1,"chg":-0.9},"soybeans":{"price":1020,"chg":0.4},"corn":{"price":455,"chg":-0.2},"coffee":{"price":2.8,"chg":1.2},"wheat":{"price":540,"chg":0.1},"usd_brl":{"price":5.75,"chg":0.3},"eur_brl":{"price":6.30,"chg":0.1},"selic":{"price":14.75,"chg":0},"cdi":{"price":14.65,"chg":0},"ipca":{"price":5.1,"chg":0}}
-chg = percentage change from previous close.`,
-          messages:[{role:"user",content:"Search and return current market prices for: Gold (USD/oz), Silver (USD/oz), Copper (USD/lb), WTI Crude Oil (USD/barrel), Brent Crude Oil (USD/barrel), Soybeans (USD/bushel), Corn (USD/bushel), Coffee (USD/lb), Wheat (USD/bushel), USD/BRL, EUR/BRL, Brazil SELIC rate, CDI rate, Brazil IPCA 12m inflation. Return only the JSON object."}]
-        })
-      });
-      const d=await res.json();
-      const txt=d.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-      const m=txt.match(/\{[\s\S]*\}/);
-      if(m){setData(JSON.parse(m[0]));setTs(new Date());}
-    }catch(e){console.error(e);}
+    try {
+      // 1. AwesomeAPI - Moedas e Cripto
+      const coins = MARKET_DEF.map(m => m.key).join(",");
+      const resAwesome = await fetch(`https://economia.awesomeapi.com.br/json/last/${coins}`);
+      const dataAwesome = await resAwesome.json();
+      setMarketData(dataAwesome);
+
+      // 2. BCB/SGS - Selic e IPCA
+      const bcbResults = {};
+      for (const b of BCB_DEF) {
+        const resBcb = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${b.key}/dados/ultimos/1?formato=json`);
+        const dataBcb = await resBcb.json();
+        if (dataBcb && dataBcb.length > 0) {
+          bcbResults[b.key] = dataBcb[0].valor;
+        }
+      }
+      setBcbData(bcbResults);
+      setTs(new Date());
+    } catch (e) {
+      console.error("Erro ao buscar dados:", e);
+    }
     setLoading(false);
-  },[]);
+  }, []);
 
-  useEffect(()=>{fetch_();},[]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const cats = [...new Set(MARKET_DEF.map(c=>c.cat))];
+  const cats = [...new Set(MARKET_DEF.map(c => c.cat))];
 
-  return(
+  return (
     <div>
       <div className="sec-hd">
         <div className="sec-cat">Mercados</div>
         <h2 className="sec-title">Cotações em <em>tempo real</em></h2>
-        <p className="sec-sub">Preços atualizados via busca em tempo real. Inclui commodities, energia, agrícolas e câmbio.</p>
+        <p className="sec-sub">Dados reais via AwesomeAPI e Banco Central do Brasil.</p>
       </div>
 
-      {/* BCB Strip */}
       <div className="bcb-strip">
-        {BCB_DEF.map(b=>{
-          const v=data?.[b.key];
-          return(
-            <div className="bcb-chip" key={b.key}>
-              <div className="bcb-chip-label">{b.label}</div>
-              {v
-                ? <div className="bcb-chip-val">{fmtNum(v.price,2)}%</div>
-                : <div className="bcb-chip-val cmd-skeleton" style={{height:28,width:80,borderRadius:4}}>&nbsp;</div>
-              }
-              <div className="bcb-chip-sub">{b.sub}</div>
-            </div>
-          );
-        })}
+        {BCB_DEF.map(b => (
+          <div className="bcb-chip" key={b.key}>
+            <div className="bcb-chip-label">{b.label}</div>
+            {bcbData[b.key] 
+              ? <div className="bcb-chip-val">{fmtNum(parseFloat(bcbData[b.key]), 2)}%</div>
+              : <div className="bcb-chip-val cmd-skeleton" style={{height:28,width:80,borderRadius:4}}>&nbsp;</div>
+            }
+            <div className="bcb-chip-sub">{b.sub}</div>
+          </div>
+        ))}
       </div>
 
       <div className="cmd-toolbar">
         <div className="cmd-update">
           {ts ? <><span>●</span> Atualizado {ts.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</> : "Buscando preços..."}
         </div>
-        <button className="refresh-btn" onClick={fetch_} disabled={loading}>
+        <button className="refresh-btn" onClick={fetchAll} disabled={loading}>
           <span className={loading?"spin":""}>↻</span>
           {loading?"Buscando...":"Atualizar"}
         </button>
       </div>
 
       <div className="cmd-cats">
-        {cats.map(cat=>{
-          const items=MARKET_DEF.filter(c=>c.cat===cat);
-          return(
+        {cats.map(cat => {
+          const items = MARKET_DEF.filter(c => c.cat === cat);
+          return (
             <div key={cat}>
               <div className="cmd-cat-title">{cat}</div>
               <div className="cmd-grid">
-                {items.map(item=>{
-                  const v=data?.[item.key];
-                  const chg=v?.chg??0;
-                  const cls=chg>0?"chg-up":chg<0?"chg-dn":"chg-flat";
-                  const sign=chg>0?"+":"";
-                  return(
+                {items.map(item => {
+                  const v = marketData?.[item.key.replace("-", "")];
+                  const chg = v ? parseFloat(v.pctChange) : 0;
+                  const cls = chg > 0 ? "chg-up" : chg < 0 ? "chg-dn" : "chg-flat";
+                  const sign = chg > 0 ? "+" : "";
+                  return (
                     <div className="cmd-card" key={item.key}>
                       <div className="cmd-card-top">
                         <span className="cmd-icon">{item.icon}</span>
                         {v
-                          ? <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg,2)}%</span>
+                          ? <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg, 2)}%</span>
                           : <span className="cmd-skeleton" style={{width:48,height:20,borderRadius:100}}>&nbsp;</span>
                         }
                       </div>
                       <div className="cmd-name">{item.label}</div>
                       {v
-                        ? <div className="cmd-price">{item.unit==="R$"?"R$ ":item.unit==="USD/oz"||item.unit==="USD/lb"||item.unit==="USD/bbl"||item.unit==="USD/bu"?"$":""}{fmtNum(v.price,item.unit.includes("bbl")||item.unit.includes("bu")?2:2)}</div>
+                        ? <div className="cmd-price">{item.unit} {fmtNum(parseFloat(v.bid), 2)}</div>
                         : <div className="cmd-skeleton" style={{height:26,width:90,borderRadius:4,marginTop:4}}>&nbsp;</div>
                       }
-                      <div className="cmd-unit">{item.unit}</div>
+                      <div className="cmd-unit">{item.unit} / {item.key.split("-")[0]}</div>
                     </div>
                   );
                 })}
@@ -297,13 +281,6 @@ chg = percentage change from previous close.`,
           );
         })}
       </div>
-
-      {data && (
-        <div className="callout" style={{marginTop:20}}>
-          <span>ℹ️</span>
-          <span>Preços obtidos via busca em tempo real. Valores podem ter pequena defasagem em relação ao mercado. Para operações, consulte sua corretora.</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -316,7 +293,6 @@ function Simulador(){
   const [res,setRes]=useState(null);
   const [aiTxt,setAiTxt]=useState("");
   const [loading,setLoading]=useState(false);
-  const [streaming,setStreaming]=useState(false);
 
   const set=k=>e=>setF(p=>({...p,[k]:e.target.value}));
 
@@ -332,48 +308,42 @@ function Simulador(){
     const juros=total-(imovel-entrada);
     const entPct=(entrada/imovel)*100;
     setRes({renda,imovel,entrada,prazo,taxa,parcela,comp,total,juros,entPct});
-    setAiTxt(""); setLoading(true); setStreaming(false);
+    
+    setAiTxt(""); 
+    setLoading(true);
 
-    const prompt=`Você é um consultor financeiro brasileiro especialista em crédito imobiliário. Analise com tom direto, humano e útil. Use o contexto econômico brasileiro de 2026.
+    // Integração com OpenAI (exige chave no .env)
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      setAiTxt("Configure sua VITE_OPENAI_API_KEY no arquivo .env para receber análise de IA.");
+      setLoading(false);
+      return;
+    }
 
-DADOS:
-- Renda mensal: ${fmtBRL(renda)}
-- Imóvel: ${fmtBRL(imovel)} | Entrada: ${fmtBRL(entrada)} (${entPct.toFixed(1)}%)
-- Prazo: ${prazo} anos | Taxa: ${taxa}% a.a.
-- Parcela: ${fmtBRL(parcela)} | Comprometimento: ${comp.toFixed(1)}%
-- Total de juros: ${fmtBRL(juros)}
-
-Analise em 3 parágrafos curtos:
-1. Viabilidade: o banco vai aprovar? O comprometimento está saudável?
-2. Custo real: o que ${fmtBRL(juros)} em juros representa na prática?
-3. Recomendação direta: financiar agora, esperar ou aumentar a entrada? Mencione a Selic em 14,75%.
-
-Sem introduções genéricas. Resposta em português.`;
-
-    try{
-      const resp=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,stream:true,messages:[{role:"user",content:prompt}]})
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [{
+            role: "system",
+            content: "Você é um consultor financeiro brasileiro. Analise simulações de financiamento imobiliário de forma curta e direta."
+          }, {
+            role: "user",
+            content: `Analise: Renda ${fmtBRL(renda)}, Imóvel ${fmtBRL(imovel)}, Entrada ${fmtBRL(entrada)}, Parcela ${fmtBRL(parcela)} (${comp.toFixed(1)}% da renda).`
+          }]
+        })
       });
-      setLoading(false); setStreaming(true);
-      const reader=resp.body.getReader();
-      const dec=new TextDecoder();
-      let buf="";
-      while(true){
-        const{done,value}=await reader.read();
-        if(done)break;
-        buf+=dec.decode(value,{stream:true});
-        const lines=buf.split("\n"); buf=lines.pop();
-        for(const line of lines){
-          if(line.startsWith("data: ")){
-            const raw=line.slice(6).trim();
-            if(raw==="[DONE]")break;
-            try{const p=JSON.parse(raw);if(p.delta?.text)setAiTxt(t=>t+p.delta.text);}catch{}
-          }
-        }
-      }
-      setStreaming(false);
-    }catch(e){setLoading(false);setStreaming(false);setAiTxt("Erro ao conectar com a IA.");}
+      const data = await response.json();
+      setAiTxt(data.choices[0].message.content);
+    } catch (e) {
+      setAiTxt("Erro ao conectar com a OpenAI. Verifique sua chave e conexão.");
+    }
+    setLoading(false);
   },[f]);
 
   return(
@@ -381,7 +351,7 @@ Sem introduções genéricas. Resposta em português.`;
       <div className="sec-hd">
         <div className="sec-cat">Crédito Imobiliário</div>
         <h2 className="sec-title">Simulador com <em>análise de IA</em></h2>
-        <p className="sec-sub">Calcule sua parcela e receba uma avaliação personalizada: viabilidade, custo real e o que fazer agora.</p>
+        <p className="sec-sub">Calcule sua parcela e receba uma avaliação personalizada.</p>
       </div>
 
       <div className="card">
@@ -391,32 +361,34 @@ Sem introduções genéricas. Resposta em português.`;
           <div className="field"><label>Valor do imóvel</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.imovel} onChange={set("imovel")} inputMode="numeric"/></div></div>
           <div className="field"><label>Entrada</label><div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={f.entrada} onChange={set("entrada")} inputMode="numeric"/></div></div>
           <div className="field"><label>Prazo (anos)</label><div className="inp-wrap"><input className="inp np ns" value={f.prazo} onChange={set("prazo")} inputMode="numeric"/><span className="inp-suf">anos</span></div></div>
-          <div className="field full"><label>Taxa de juros (Caixa hoje ~10,49% a.a.)</label><div className="inp-wrap"><input className="inp np ns" value={f.taxa} onChange={set("taxa")} inputMode="decimal"/><span className="inp-suf">% a.a.</span></div></div>
+          <div className="field"><label>Taxa de juros (% a.a.)</label><div className="inp-wrap"><input className="inp np ns" value={f.taxa} onChange={set("taxa")} inputMode="decimal"/><span className="inp-suf">% a.a.</span></div></div>
+          <button className="btn-gold full" onClick={calcular} disabled={loading}>{loading ? "Analisando..." : "Calcular e Analisar com IA"}</button>
         </div>
-        <button className="btn-gold" onClick={calcular} disabled={loading||streaming}>
-          {loading?"Calculando...":streaming?"Analisando com IA ▪▪▪":"Calcular e analisar com IA →"}
-        </button>
       </div>
 
-      {res&&(
-        <div className="card">
-          <div className="card-title">Resultado</div>
+      {res && (
+        <>
           <div className="res-grid">
-            <div className="res-item"><div className="res-lbl">Parcela mensal</div><div className={`res-val ${res.comp>30?"r":res.comp>25?"o":"g"}`}>{fmtBRL(res.parcela)}</div><div className="res-sub">sistema Price</div></div>
-            <div className="res-item"><div className="res-lbl">Comprometimento</div><div className={`res-val ${res.comp>30?"r":res.comp>25?"o":"g"}`}>{res.comp.toFixed(1)}%</div><div className="res-sub">da renda</div></div>
-            <div className="res-item"><div className="res-lbl">Total de juros</div><div className="res-val r">{fmtBRL(res.juros)}</div><div className="res-sub">em {res.prazo} anos</div></div>
-            <div className="res-item"><div className="res-lbl">Total pago</div><div className="res-val">{fmtBRL(res.total)}</div><div className="res-sub">principal + juros</div></div>
-            <div className="res-item"><div className="res-lbl">Entrada</div><div className="res-val o">{res.entPct.toFixed(1)}%</div><div className="res-sub">do imóvel</div></div>
-            <div className="res-item"><div className="res-lbl">Financiado</div><div className="res-val">{fmtBRL(res.imovel-res.entrada)}</div><div className="res-sub">principal</div></div>
+            <div className="res-item"><div className="res-lbl">Parcela mensal</div><div className="res-val o">{fmtBRL(res.parcela)}</div><div className="res-sub">Tabela PRICE</div></div>
+            <div className="res-item"><div className="res-lbl">Comprometimento</div><div className={`res-val ${res.comp>30?"r":"g"}`}>{res.comp.toFixed(1)}%</div><div className="res-sub">Máximo ideal: 30%</div></div>
+            <div className="res-item"><div className="res-lbl">Total de juros</div><div className="res-val r">{fmtBRL(res.juros)}</div><div className="res-sub">Custo do crédito</div></div>
           </div>
-          {res.comp>30&&<div className="callout callout-warn"><span>⚠️</span><span>Comprometimento acima de 30% — limite habitual para aprovação bancária.</span></div>}
-          <div className="divider"/>
+
           <div className="ai-box">
-            <div className="ai-hd"><div className="ai-badge">✦ IA</div><div className="ai-hdtxt">Análise personalizada do seu caso</div></div>
-            {loading&&<div className="ai-loading"><div className="ai-dots"><span/><span/><span/></div>Analisando...</div>}
-            {aiTxt&&<div className="ai-txt">{aiTxt}{streaming?"▌":""}</div>}
+            <div className="ai-hd">
+              <div className="ai-badge">Manus AI</div>
+              <div className="ai-hdtxt">Análise Estratégica</div>
+            </div>
+            {loading ? (
+              <div className="ai-loading">
+                <div className="ai-dots"><span/><span/><span/></div>
+                <span>Processando dados econômicos...</span>
+              </div>
+            ) : (
+              <div className="ai-txt">{aiTxt}</div>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -427,35 +399,33 @@ Sem introduções genéricas. Resposta em português.`;
 // ──────────────────────────────────────────────
 function Comparador(){
   const [valor,setValor]=useState("10000");
-  const [meses,setMeses]=useState("24");
+  const [meses,setMeses]=useState("12");
 
-  const v=parseFloat(valor)||10000;
-  const m=parseInt(meses)||24;
+  const v=parseFloat(valor)||0;
+  const m=parseInt(meses)||12;
 
-  const rows=INVEST.map(inv=>{
-    const saldo=calcInvest(v,m,inv.rate,inv.ir);
-    const lucro=saldo-v;
-    return{...inv,saldo,lucro};
-  }).sort((a,b)=>b.saldo-a.saldo);
-
-  const best=rows[0].saldo;
+  const results = INVEST.map(inv=>{
+    const taxaLiq = inv.ir ? inv.rate * 0.85 : inv.rate;
+    const final = v * Math.pow(1 + taxaLiq/100, m/12);
+    return {...inv, final};
+  }).sort((a,b)=>b.final - a.final);
 
   return(
     <div>
       <div className="sec-hd">
-        <div className="sec-cat">Renda Fixa + Variável</div>
-        <h2 className="sec-title">Comparador de <em>investimentos</em></h2>
-        <p className="sec-sub">Veja quanto R$ 1 investido rende em cada modalidade. Calcule pelo valor e prazo desejados.</p>
+        <div className="sec-cat">Investimentos</div>
+        <h2 className="sec-title">Onde seu dinheiro <em>rende mais</em></h2>
+        <p className="sec-sub">Comparação líquida (pós-impostos) baseada nas taxas atuais de mercado.</p>
       </div>
 
       <div className="card">
         <div className="cmp-inputs">
           <div className="cmp-inp-wrap">
-            <div className="cmp-inp-lbl">Valor a investir</div>
+            <label className="cmp-inp-lbl">Quanto quer investir?</label>
             <div className="inp-wrap"><span className="inp-pre">R$</span><input className="inp" value={valor} onChange={e=>setValor(e.target.value)} inputMode="numeric"/></div>
           </div>
           <div className="cmp-inp-wrap">
-            <div className="cmp-inp-lbl">Prazo (meses)</div>
+            <label className="cmp-inp-lbl">Por quanto tempo?</label>
             <div className="inp-wrap"><input className="inp np ns" value={meses} onChange={e=>setMeses(e.target.value)} inputMode="numeric"/><span className="inp-suf">meses</span></div>
           </div>
         </div>
@@ -465,46 +435,30 @@ function Comparador(){
             <thead>
               <tr>
                 <th>Investimento</th>
-                <th>Taxa líquida</th>
-                <th>Saldo final</th>
-                <th>Lucro</th>
+                <th>Taxa Est.</th>
                 <th>Liquidez</th>
+                <th>Resultado Final</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r,i)=>(
+              {results.map((r,idx)=>(
                 <tr key={r.name}>
                   <td>
-                    <div className="inv-name">
-                      {r.saldo===best&&<span className="badge-best" style={{marginRight:6}}>★ Melhor</span>}
-                      {r.name}
-                    </div>
-                    <span className="inv-tag">
-                      {r.tag} {!r.ir&&<span className="badge-ir">Isento IR</span>}
-                    </span>
+                    <span className="inv-name">{r.name}</span>
+                    <span className="inv-tag">{r.tag}</span>
                   </td>
-                  <td style={{color:"var(--gold)"}}>{fmtPct(r.rate)}</td>
-                  <td style={{color:r.saldo===best?"var(--green)":"var(--text)",fontWeight:r.saldo===best?500:300}}>{fmtBRL(r.saldo)}</td>
-                  <td style={{color:"var(--green)"}}>{fmtBRL(r.lucro)}</td>
-                  <td style={{fontSize:".8rem",color:"var(--muted)"}}>{r.liq}</td>
+                  <td>{r.rate}% a.a.</td>
+                  <td>{r.liq}</td>
+                  <td>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <strong>{fmtBRL(r.final)}</strong>
+                      {idx===0 && <span className="badge-best">Melhor Opção</span>}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-
-        <div className="callout" style={{marginTop:20}}>
-          <span>💡</span>
-          <span>Taxas estimadas para abril/2026 com Selic em 14,75%. LCI/LCA usam rentabilidade equivalente após isenção de IR. FII considera apenas dividendos (sem variação de cota).</span>
-        </div>
-
-        <div className="aff-box">
-          <div className="aff-lbl">Onde investir agora</div>
-          <div className="aff-links">
-            <a href="#LINK-XP-AFILIADO" className="aff-link" target="_blank" rel="noopener sponsored">📈 XP — LCI, LCA, FIIs e Debêntures <span className="aff-arrow">↗</span></a>
-            <a href="#LINK-INTER-AFILIADO" className="aff-link" target="_blank" rel="noopener sponsored">🧡 Inter — CDB 120% CDI a partir de R$ 100 <span className="aff-arrow">↗</span></a>
-            <a href="#LINK-NUBANK-AFILIADO" className="aff-link" target="_blank" rel="noopener sponsored">💜 Nubank — 100% CDI automático <span className="aff-arrow">↗</span></a>
-          </div>
         </div>
       </div>
     </div>
