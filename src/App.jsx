@@ -165,19 +165,35 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 	.divider{height:1px;background:var(--border);margin:22px 0;}
 	
 	/* DIVIDENDOS */
-	.div-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
-	.div-table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left;}
-	.div-table th{background:var(--surface2);color:var(--muted);font-weight:600;padding:14px 18px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);}
-	.div-table td{padding:16px 18px;border-bottom:1px solid var(--border);color:#d4cec0;vertical-align:middle;}
+	.div-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow-x:auto;overflow-y:hidden;margin-bottom:24px;-webkit-overflow-scrolling:touch;}
+	.div-table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left;min-width:600px;}
+	.div-table th{background:var(--surface2);color:var(--muted);font-weight:600;padding:14px 12px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
+	.div-table td{padding:14px 12px;border-bottom:1px solid var(--border);color:#d4cec0;vertical-align:middle;}
 	.div-table tr:last-child td{border-bottom:none;}
 	.div-table tr:hover td{background:rgba(201,168,76,.03);}
-	.div-ticker{font-weight:700;color:var(--gold);font-size:.9rem;display:block;}
-	.div-name{font-size:.7rem;color:var(--muted);display:block;margin-top:2px;}
-	.div-type{font-size:.72rem;background:rgba(201,168,76,.1);color:var(--gold-light);padding:2px 8px;border-radius:100px;display:inline-block;font-weight:500;}
-	.div-val{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);}
-	.div-date{font-size:.8rem;color:var(--text);font-weight:500;}
-	.div-date-label{font-size:.65rem;color:var(--muted);display:block;margin-top:2px;}
-	.div-badge-today{background:rgba(76,175,125,.15);color:var(--green);font-size:.65rem;padding:2px 8px;border-radius:100px;font-weight:600;margin-left:6px;}
+	.div-ticker{font-weight:700;color:var(--gold);font-size:.85rem;display:block;}
+	.div-name{font-size:.65rem;color:var(--muted);display:block;margin-top:2px;}
+	.div-type{font-size:.65rem;background:rgba(201,168,76,.1);color:var(--gold-light);padding:2px 6px;border-radius:100px;display:inline-block;font-weight:500;white-space:nowrap;}
+	.div-val{font-family:'DM Serif Display',serif;font-size:.95rem;color:var(--text);}
+	.div-date{font-size:.75rem;color:var(--text);font-weight:500;white-space:nowrap;}
+	.div-date-label{font-size:.6rem;color:var(--muted);display:block;margin-top:2px;}
+	.div-badge-today{background:rgba(76,175,125,.15);color:var(--green);font-size:.6rem;padding:2px 6px;border-radius:100px;font-weight:600;margin-left:4px;}
+	@media(max-width:768px){
+		.div-table{font-size:.75rem;min-width:550px;}
+		.div-table th{padding:10px 8px;font-size:.6rem;}
+		.div-table td{padding:10px 8px;}
+		.div-ticker{font-size:.75rem;}
+		.div-val{font-size:.85rem;}
+	}
+	@media(max-width:480px){
+		.div-table{font-size:.7rem;min-width:480px;}
+		.div-table th{padding:8px 6px;font-size:.55rem;}
+		.div-table td{padding:8px 6px;}
+		.div-ticker{font-size:.7rem;}
+		.div-name{font-size:.6rem;}
+		.div-val{font-size:.8rem;}
+		.div-date{font-size:.7rem;}
+	}
 
 	/* ARTIGOS */
 .art-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
