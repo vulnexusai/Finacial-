@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 const S = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
@@ -53,7 +54,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .cmd-cats{display:flex;flex-direction:column;gap:20px;}
 .cmd-cat-title{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-left:2px;}
 .cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
-.cmd-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;transition:border-color .2s;}
+.cmd-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 16px 12px;transition:border-color .2s;display:flex;flex-direction:column;}
 .cmd-card:hover{border-color:var(--gold-dim);}
 .cmd-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .cmd-icon{font-size:1.1rem;}
@@ -64,6 +65,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .cmd-name{font-size:.72rem;color:var(--muted);margin-bottom:4px;letter-spacing:.02em;}
 .cmd-price{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--text);}
 .cmd-unit{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.cmd-chart{margin-top:16px;height:50px;width:100%;opacity:.6;transition:opacity .2s;pointer-events:none;}
+.cmd-card:hover .cmd-chart{opacity:1;}
 .cmd-skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
@@ -699,6 +702,15 @@ function Cotacoes(){
                         : <div className="cmd-skeleton" style={{height:26,width:90,borderRadius:4,marginTop:4}}>&nbsp;</div>
                       }
                       <div className="cmd-unit">{item.unit} / {item.key.split("-")[0]}</div>
+                      {v?.history && v.history.length > 1 && (
+                        <div className="cmd-chart">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={v.history} margin={{top:5,right:5,bottom:5,left:5}}>
+                              <Line type="monotone" dataKey="value" stroke={chg > 0 ? "#4caf7d" : chg < 0 ? "#e05555" : "#8a8070"} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
