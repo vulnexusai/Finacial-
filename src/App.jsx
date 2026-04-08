@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import ReactMarkdown from "react-markdown";
 
 const S = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
@@ -184,6 +185,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 /* DISCLAIMER */
 .disclaimer{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:40px;font-size:.78rem;color:var(--muted);line-height:1.7;}
 .disclaimer strong{color:var(--gold-dim);font-weight:600;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+
+/* FOOTER */
+.ftr{border-top:1px solid var(--border);padding:40px 20px;text-align:center;margin-top:60px;}
+.ftr-links{display:flex;justify-content:center;gap:20px;margin-bottom:20px;flex-wrap:wrap;}
+.ftr-link{color:var(--muted);text-decoration:none;font-size:.8rem;transition:color .2s;}
+.ftr-link:hover{color:var(--gold);}
+.ftr-copy{font-size:.75rem;color:var(--muted);}
 `;
 
 const MARKET_DEF = [
@@ -292,8 +300,8 @@ const ARTICLES = [
     tempo:"5 min",
     updated:"Janeiro 2026",
     conteudo:`
-<h3>O mito do "preciso de muito dinheiro para investir"</h3>
-<p>A maioria das pessoas adia o início dos investimentos esperando "ter mais dinheiro". Esse é um dos maiores erros financeiros que existe — o tempo é o ativo mais valioso nos investimentos por causa dos juros compostos.</p>
+<h3>O mito do \"preciso de muito dinheiro para investir\"</h3>
+<p>A maioria das pessoas adia o início dos investimentos esperando \"ter mais dinheiro\". Esse é um dos maiores erros financeiros que existe — o tempo é o ativo mais valioso nos investimentos por causa dos juros compostos.</p>
 <p>R$ 100 investidos hoje a 12% ao ano valem R$ 311 em 10 anos. R$ 100 por mês durante 10 anos, ao mesmo rendimento, viram mais de R$ 23.000.</p>
 
 <h3>Passo 1: Reserve antes de investir</h3>
@@ -304,13 +312,13 @@ const ARTICLES = [
 <p><strong>Se a reserva já está completa:</strong> Divida os R$ 100 em duas partes — R$ 70 no Tesouro Selic or CDB e R$ 30 no Tesouro IPCA+ para um objetivo de longo prazo (aposentadoria, imóvel).</p>
 
 <h3>Passo 3: Automatize</h3>
-<p>Configure um débito automático no dia seguinte ao pagamento do salário. Investir o que sobra no final do mês raramente funciona — o dinheiro sempre "some". Invista primeiro, viva com o resto.</p>
+<p>Configure um débito automático no dia seguinte ao pagamento do salário. Investir o que sobra no final do mês raramente funciona — o dinheiro sempre \"some\". Invista primeiro, viva com o resto.</p>
 
 <h3>Passo 4: Aumente gradualmente</h3>
 <p>A cada aumento de salário ou renda extra, aumente o valor investido. Passe de R$ 100 para R$ 150, depois R$ 200. Em poucos anos a diferença será enorme.</p>
 
 <h3>Erros para evitar no início</h3>
-<p>Não invista em ações ou criptomoedas antes de ter reserva de emergência e pelo menos 6 meses de experiência com renda fixa. Não busque "o melhor investimento" — a consistência vale mais do que a rentabilidade perfeita. Não resgate antes do prazo para compras não planejadas.</p>`,
+<p>Não invista em ações ou criptomoedas antes de ter reserva de emergência e pelo menos 6 meses de experiência com renda fixa. Não busque \"o melhor investimento\" — a consistência vale mais do que a rentabilidade perfeita. Não resgate antes do prazo para compras não planejadas.</p>`,
     afiliados:[
       { label:"💜 Abrir conta Nubank — comece com R$ 1", href:"#" },
       { label:"🏦 Banco Inter — investimento a partir de R$ 1", href:"#" },
@@ -366,7 +374,7 @@ const ARTICLES = [
 <p>Nubank, Banco Inter e C6 Bank juntos somam mais de 100 milhões de clientes no Brasil. Os três oferecem conta corrente gratuita, cartão de crédito sem anuidade e rendimento automático no saldo. Mas as diferenças entre eles são maiores do que parecem.</p>
 
 <h3>Rendimento do saldo em conta</h3>
-<p><strong>Nubank:</strong> Rende 100% do CDI automaticamente (chamado de "Caixinha"). O dinheiro fica disponível imediatamente. <strong>Banco Inter:</strong> Rende 100% do CDI via CDB automático, com liquidez diária. <strong>C6 Bank:</strong> Rende 100% do CDI no CDB automático, com liquidez diária. Empate técnico — os três rendem igual no saldo parado.</p>
+<p><strong>Nubank:</strong> Rende 100% do CDI automaticamente (chamado de \"Caixinha\"). O dinheiro fica disponível imediatamente. <strong>Banco Inter:</strong> Rende 100% do CDI via CDB automático, com liquidez diária. <strong>C6 Bank:</strong> Rende 100% do CDI no CDB automático, com liquidez diária. Empate técnico — os três rendem igual no saldo parado.</p>
 
 <h3>Cartão de crédito</h3>
 <p><strong>Nubank:</strong> Mastercard, sem anuidade, limite baseado em score. 1% cashback na versão Ultravioleta (que custa R$ 19/mês mas devolve mais do que cobra para quem gasta bastante). <strong>Inter:</strong> Mastercard Gold sem anuidade, cashback na Inter Shop, limite cresce com investimentos. <strong>C6:</strong> Mastercard Black (C6 Carbon) sem anuidade condicionada. Melhor programa de pontos (Átomos sem validade) e acesso a salas VIP.</p>
@@ -395,7 +403,7 @@ const ARTICLES = [
     updated:"Janeiro 2026",
     conteudo:`
 <h3>O cheque especial é uma das dívidas mais caras do Brasil</h3>
-<p>Os juros do cheque especial chegam a 12% ao mês — o que equivale a mais de 150% ao ano. É uma das modalidades de crédito mais caras disponíveis no país, perdendo apenas para o rotativo do cartão. Mesmo assim, milhões de brasileiros usam o cheque especial como "reserva de emergência" e pagam um preço altíssimo por isso.</p>
+<p>Os juros do cheque especial chegam a 12% ao mês — o que equivale a mais de 150% ao ano. É uma das modalidades de crédito mais caras disponíveis no país, perdendo apenas para o rotativo do cartão. Mesmo assim, milhões de brasileiros usam o cheque especial como \"reserva de emergência\" e pagam um preço altíssimo por isso.</p>
 
 <h3>Entenda o que está acontecendo</h3>
 <p>O cheque especial entra automaticamente quando sua conta fica negativa. O banco não avisa — simplesmente debita os juros no final do mês. Muitas pessoas nem percebem que estão pagando por isso.</p>
@@ -532,7 +540,7 @@ const ARTICLES = [
 <p><strong>Meta 1 — R$ 1.000:</strong> Uma pequena reserva já resolve a maioria dos imprevistos cotidianos. Concentre esforços aqui primeiro. <strong>Meta 2 — 1 mês de despesas:</strong> Você está protegido contra imprevistos médios. <strong>Meta 3 — 3 a 6 meses:</strong> Reserva completa. A partir daqui, os aportes extras podem ir para investimentos de maior risco e retorno.</p>
 
 <h3>Dicas práticas</h3>
-<p>Abra uma conta separada da conta corrente para a reserva — dinheiro misturado some. Configure um débito automático mensal, mesmo que seja R$ 50. Não "empreste" a reserva para si mesmo para compras — ela só existe para emergências reais. Se usar, recomponha antes de continuar investindo.</p>`,
+<p>Abra uma conta separada da conta corrente para a reserva — dinheiro misturado some. Configure um débito automático mensal, mesmo que seja R$ 50. Não \"empreste\" a reserva para si mesmo para compras — ela só existe para emergências reais. Se usar, recomponha antes de continuar investindo.</p>`,
     afiliados:[
       { label:"💜 Nubank — abra sua conta agora", href:"#" },
       { label:"🏦 Inter — CDB liquidez diária", href:"#" },
@@ -590,7 +598,7 @@ const ARTICLES = [
 
 <h3>Boleto bancário</h3>
 <p>O boleto ainda é amplamente usado em cobranças comerciais, assinaturas, impostos e parcelamentos. Tem prazo de vencimento definido e pode ser pago em qualquer banco, lotérica ou app.</p>
-<p><strong>Use o boleto quando:</strong> o credor emitir um (você não "escolhe" pagar boleto — você paga quando ele é emitido). Em compras online parceladas sem cartão, o boleto pode sair mais barato que o cartão.</p>
+<p><strong>Use o boleto quando:</strong> o credor emitir um (você não \"escolhe\" pagar boleto — você paga quando ele é emitido). Em compras online parceladas sem cartão, o boleto pode sair mais barato que o cartão.</p>
 <p><strong>Atenção:</strong> Boletos podem ser falsificados (bolware). Sempre verifique o CNPJ do beneficiário antes de pagar. Nunca pague boleto recebido por e-mail não solicitado.</p>
 
 <h3>Resumo rápido</h3>
@@ -652,8 +660,13 @@ function Cotacoes(){
       const resData = await response.json();
       if (resData.choices && resData.choices[0]) {
         setAiSummary(resData.choices[0].message.content);
+      } else {
+        setAiSummary(resData.message || "IA indisponível no momento. Verifique as configurações da API.");
       }
-    } catch (e) { console.error("Erro resumo IA:", e); }
+    } catch (e) { 
+      console.error("Erro resumo IA:", e);
+      setAiSummary("Erro ao gerar resumo da IA. Verifique a chave GROQ_API_KEY.");
+    }
     setAiLoading(false);
   };
 
@@ -709,7 +722,7 @@ function Cotacoes(){
       {(aiLoading || aiSummary) && (
         <div className="ai-summary">
           <div className="ai-summary-hd">
-            <span className="ai-badge" style={{fontSize:'.55rem'}}>IA</span>
+            <span className="ai-badge" style={{fontSize:".55rem"}}>IA</span>
             <span>Resumo do Mercado</span>
           </div>
           {aiLoading ? (
@@ -791,7 +804,7 @@ function Cotacoes(){
                         <div className="calc-wrap" onClick={e => e.stopPropagation()}>
                           <span className="calc-label">Conversor rápido</span>
                           <div className="calc-input-group">
-                            <span style={{fontSize:'.7rem', color:'var(--gold-dim)'}}>{item.key.split("-")[0]}</span>
+                            <span style={{fontSize:".7rem", color:"var(--gold-dim)"}}>{item.key.split("-")[0]}</span>
                             <input 
                               autoFocus
                               className="calc-inp"
@@ -1060,13 +1073,47 @@ function Comparador(){
 }
 
 // ──────────────────────────────────────────────
+// MARKDOWN RENDERER
+// ──────────────────────────────────────────────
+function MarkdownPage({ content }) {
+  return (
+    <div className="art-view">
+      <ReactMarkdown className="art-content">{content}</ReactMarkdown>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
 // APP MAIN
 // ──────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("mercados");
   const [art, setArt] = useState(null);
+  const [page, setPage] = useState(null); // New state for institutional pages
+  const [aboutContent, setAboutContent] = useState("");
+  const [privacyContent, setPrivacyContent] = useState("");
+  const [termsContent, setTermsContent] = useState("");
 
-  useEffect(() => { window.scrollTo(0,0); }, [tab, art]);
+  useEffect(() => { window.scrollTo(0,0); }, [tab, art, page]);
+
+  // Fetch Markdown content for institutional pages
+  useEffect(() => {
+    fetch("/src/pages/SobreNos.md").then(res => res.text()).then(setAboutContent);
+    fetch("/src/pages/PoliticaPrivacidade.md").then(res => res.text()).then(setPrivacyContent);
+    fetch("/src/pages/TermosDeUso.md").then(res => res.text()).then(setTermsContent);
+  }, []);
+
+  const handleTabChange = (newTab) => {
+    setTab(newTab);
+    setArt(null);
+    setPage(null);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    setTab(null);
+    setArt(null);
+  };
 
   return (
     <div className="root">
@@ -1074,15 +1121,15 @@ export default function App() {
       <div className="noise" />
       
       <header className="hdr">
-        <div className="logo" onClick={() => {setTab("mercados"); setArt(null);}}>
+        <div className="logo" onClick={() => {handleTabChange("mercados");}}>
           FinançaBR
           <small>inteligência financeira</small>
         </div>
         
         <nav className="tabs">
-          <button className={`tab ${tab==="mercados"?'active':''}`} onClick={()=>{setTab("mercados");setArt(null)}}>Cotações</button>
-          <button className={`tab ${tab==="simulador"?'active':''}`} onClick={()=>{setTab("simulador");setArt(null)}}>Simulador</button>
-          <button className={`tab ${tab==="comparador"?'active':''}`} onClick={()=>{setTab("comparador");setArt(null)}}>Comparador</button>
+          <button className={`tab ${tab==="mercados"?'active':''}`} onClick={()=>{handleTabChange("mercados");}}>Cotações</button>
+          <button className={`tab ${tab==="simulador"?'active':''}`} onClick={()=>{handleTabChange("simulador");}}>Simulador</button>
+          <button className={`tab ${tab==="comparador"?'active':''}`} onClick={()=>{handleTabChange("comparador");}}>Comparador</button>
         </nav>
       </header>
 
@@ -1117,6 +1164,8 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : page ? (
+          <MarkdownPage content={page === "sobre" ? aboutContent : page === "privacidade" ? privacyContent : termsContent} />
         ) : (
           <>
             {tab === "mercados" && (
@@ -1170,6 +1219,15 @@ export default function App() {
           </>
         )}
       </main>
+
+      <footer className="ftr">
+        <div className="ftr-links">
+          <a href="#" onClick={() => handlePageChange("sobre")} className="ftr-link">Sobre Nós</a>
+          <a href="#" onClick={() => handlePageChange("privacidade")} className="ftr-link">Política de Privacidade</a>
+          <a href="#" onClick={() => handlePageChange("termos")} className="ftr-link">Termos de Uso</a>
+        </div>
+        <div className="ftr-copy">© {new Date().getFullYear()} FinançaBR. Todos os direitos reservados.</div>
+      </footer>
     </div>
   );
 }
