@@ -56,18 +56,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .bcb-chip-sub{font-size:.65rem;color:var(--muted);}
 
 /* AI SUMMARY */
-.ai-summary{background:rgba(201,168,76,.03);border:1px solid rgba(201,168,76,.1);border-radius:14px;padding:20px;margin-bottom:24px;}
+.ai-summary{background:rgba(201,168,76,0.03);border:1px solid rgba(201,168,76,0.1);border-radius:14px;padding:20px;margin-bottom:24px;}
 .ai-summary-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;}
 .ai-summary-txt{font-size:.88rem;line-height:1.6;color:#d4cec0;}
 
 /* COMMODITY GRID */
-.cmd-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
-.cmd-update{font-size:.7rem;color:var(--muted);}
-.refresh-btn{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:6px;}
-
-.cmd-cats{display:flex;flex-direction:column;gap:24px;}
-.cmd-cat-title{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px;}
-.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:10px;}
+.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:10px;margin-bottom:24px;}
 @media(max-width:400px){.cmd-grid{grid-template-columns:1fr 1fr;}}
 .cmd-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;cursor:pointer;min-height:110px;}
 .cmd-card:hover{border-color:var(--gold-dim);}
@@ -119,11 +113,19 @@ td{padding:14px 16px;border-bottom:1px solid var(--border);color:#d4cec0;}
 .art-content h3{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--text);margin:32px 0 16px;}
 .art-content p{margin-bottom:20px;}
 
+/* DISCLAIMER */
+.disclaimer{background:rgba(224,85,85,0.05);border:1px solid rgba(224,85,85,0.2);border-radius:12px;padding:20px;margin:32px 0;font-size:.78rem;color:var(--muted);line-height:1.6;}
+.disclaimer strong{color:var(--red);font-weight:600;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+
 /* CONVERSION */
 .conv-section{text-align:center;padding:60px 20px;border-top:1px solid var(--border);margin-top:40px;}
 .conv-title{font-family:'DM Serif Display',serif;font-size:1.8rem;margin-bottom:24px;}
 
+/* FOOTER */
 .ftr{padding:40px 20px;text-align:center;font-size:.75rem;color:var(--muted);border-top:1px solid var(--border);}
+.ftr-links{display:flex;justify-content:center;gap:20px;margin-bottom:20px;flex-wrap:wrap;}
+.ftr-link{color:var(--muted);text-decoration:none;transition:color .2s;cursor:pointer;}
+.ftr-link:hover{color:var(--gold);}
 `;
 
 const MARKET_DEF = [
@@ -150,13 +152,11 @@ const DIVIDENDS_REAL = [
   { ticker: "CXSE3", name: "Caixa Seguridade", type: "Dividendo", value: "0,33", dateCom: "30/04/2026" },
   { ticker: "ISAE4", name: "Isa Energia", type: "Dividendo", value: "0,14", dateCom: "17/04/2026" },
   { ticker: "CSUD3", name: "CSU Digital", type: "JSCP", value: "0,17", dateCom: "02/04/2026" },
-  { ticker: "MILS3", name: "Mills", type: "Dividendo", value: "0,66", dateCom: "20/04/2026" },
-  { ticker: "ALOS3", name: "Allos", type: "Dividendo", value: "0,29", dateCom: "22/04/2026" },
 ];
 
 const ARTICLES = [
-  { id:"cdb-vs-tesouro", cat:"Investimentos", title:"CDB vs Tesouro Direto", desc:"Qual rende mais para sua reserva?", conteudo: "<h3>CDB vs Tesouro</h3><p>Ambos são excelentes para reserva de emergência. O Tesouro Selic é o título mais seguro do país, enquanto CDBs de bancos sólidos podem pagar até 110% do CDI.</p>" },
-  { id:"sair-cheque-especial", cat:"Crédito", title:"Sair do Cheque Especial", desc:"Como fugir dos juros de 150% ao ano.", conteudo: "<h3>Cheque Especial</h3><p>Fuja dos juros abusivos. A melhor estratégia é trocar a dívida cara por uma mais barata, como um empréstimo consignado ou pessoal com taxas menores.</p>" },
+  { id:"cdb-vs-tesouro", cat:"Investimentos", title:"CDB vs Tesouro Direto", desc:"Qual rende mais para sua reserva?", conteudo: "<h3>CDB vs Tesouro</h3><p>O Tesouro Selic é o título mais seguro do país. CDBs podem pagar mais, mas exigem atenção ao banco emissor.</p>" },
+  { id:"sair-cheque-especial", cat:"Crédito", title:"Sair do Cheque Especial", desc:"Como fugir dos juros abusivos.", conteudo: "<h3>Cheque Especial</h3><p>Troque a dívida cara por uma mais barata. O consignado é uma excelente opção.</p>" },
 ];
 
 function fmtBRL(v){ return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
@@ -178,8 +178,6 @@ export default function App() {
   const [art, setArt] = useState(null);
   const [f,setF] = useState({renda:"8000",imovel:"400000",entrada:"80000",prazo:"30",taxa:"10.49"});
   const [res,setRes] = useState(null);
-  const [aiSimTxt, setAiSimTxt] = useState("");
-  const [aiSimLoading, setAiSimLoading] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoading(true); setAiLoading(true);
@@ -188,49 +186,18 @@ export default function App() {
       setMarketData(dataM); setTs(new Date());
       const resB = await fetch(`/api/bcb?serie=11`); const dataB = await resB.json();
       if (dataB?.length) setBcbData({ "11": dataB[0].valor });
-      
-      const summaryText = Object.entries(dataM).map(([k,v]) => `${v.name}: ${v.bid}`).join(", ");
-      const resAi = await fetch("/api/groq", { 
-        method: "POST", 
-        headers: { "Content-Type": "application/json" }, 
-        body: JSON.stringify({ 
-          messages: [
-            { role: "system", content: "Você é um analista financeiro brasileiro. Resuma o mercado em 2 frases e diga o que o usuário deve fazer hoje." }, 
-            { role: "user", content: `Dados atuais: ${summaryText}` }
-          ] 
-        }) 
-      });
-      const dataAi = await resAi.json();
-      setAiSummary(dataAi.choices?.[0]?.message?.content || "Mercado em movimento. Considere diversificar.");
-    } catch (e) { console.error("Erro IA:", e); setAiSummary("Análise indisponível no momento."); }
+      const resAi = await fetch("/api/groq", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "system", content: "Analista financeiro. Resumo curto do mercado e o que fazer hoje." }, { role: "user", content: "Resuma o mercado atual." }]}) });
+      const dataAi = await resAi.json(); setAiSummary(dataAi.choices?.[0]?.message?.content || "Diversifique hoje.");
+    } catch (e) { console.error(e); }
     setLoading(false); setAiLoading(false);
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const simular = async () => {
+  const simular = () => {
     const r = parseFloat(f.renda), i = parseFloat(f.imovel), e = parseFloat(f.entrada), p = parseInt(f.prazo), t = parseFloat(f.taxa.replace(",","."));
     const parc = calcParcela(i,e,t,p);
-    const comp = (parc/r)*100;
-    const juros = (parc*p*12)-(i-e);
-    setRes({parc, comp, juros});
-
-    setAiSimLoading(true);
-    try {
-      const response = await fetch("/api/groq", { 
-        method:"POST", 
-        headers:{"Content-Type":"application/json"}, 
-        body: JSON.stringify({ 
-          messages:[
-            {role:"system", content:"Analista de crédito imobiliário. Seja direto e útil."}, 
-            {role:"user", content:`Renda ${fmtBRL(r)}, Imóvel ${fmtBRL(i)}, Parcela ${fmtBRL(parc)} (${comp.toFixed(1)}% da renda). É uma boa ideia?`}
-          ]
-        }) 
-      });
-      const data = await response.json();
-      setAiSimTxt(data.choices?.[0]?.message?.content || "Analise o comprometimento de renda antes de fechar.");
-    } catch(e) { setAiSimTxt("Erro ao processar análise da IA."); }
-    setAiSimLoading(false);
+    setRes({parc, comp:(parc/r)*100, juros:(parc*p*12)-(i-e)});
   };
 
   return (
@@ -261,7 +228,7 @@ export default function App() {
               <>
                 <section className="hero">
                   <h1 className="hero-title">O que fazer com seu <em>dinheiro</em> hoje?</h1>
-                  <p className="hero-sub">Análises reais e simulações para você decidir com segurança.</p>
+                  <p className="hero-sub">Análises reais para você decidir melhor.</p>
                   <div className="hero-btns">
                     <button className="btn-main" onClick={()=>setTab("mercados")}>Análise do Dia</button>
                     <button className="btn-sec" onClick={()=>setTab("simulador")}>Simulador</button>
@@ -292,28 +259,21 @@ export default function App() {
                   ))}
                 </div>
                 <div className="ai-summary">
-                  <div className="ai-summary-hd"><span>✨ IA Insights</span></div>
-                  <p className="ai-summary-txt">{aiLoading ? "Consultando analista..." : aiSummary}</p>
+                  <div className="ai-summary-hd"><span>✨ IA Análise</span></div>
+                  <p className="ai-summary-txt">{aiLoading ? "Gerando..." : aiSummary}</p>
                 </div>
-                <div className="cmd-cats">
-                  {["Metais", "Câmbio", "Commodities", "Bolsas", "Cripto"].map(cat => (
-                    <div key={cat}>
-                      <div className="cmd-cat-title">{cat}</div>
-                      <div className="cmd-grid">
-                        {MARKET_DEF.filter(c => c.cat === cat).map(item => {
-                          const v = marketData?.[item.key.replace("-","")];
-                          const chg = v ? parseFloat(v.pctChange) : 0;
-                          return (
-                            <div className="cmd-card" key={item.key}>
-                              <div className="cmd-card-top"><span className="cmd-icon">{item.icon}</span><span className={`cmd-chg ${chg>=0?'chg-up':'chg-dn'}`}>{chg>=0?'+':''}{fmtNum(chg)}%</span></div>
-                              <div className="cmd-name">{item.label}</div>
-                              <div className="cmd-price">{item.unit} {v ? fmtNum(parseFloat(v.bid)) : "..."}</div>
-                            </div>
-                          );
-                        })}
+                <div className="cmd-grid">
+                  {MARKET_DEF.map(item => {
+                    const v = marketData?.[item.key.replace("-","")];
+                    const chg = v ? parseFloat(v.pctChange) : 0;
+                    return (
+                      <div className="cmd-card" key={item.key}>
+                        <div className="cmd-card-top"><span className="cmd-icon">{item.icon}</span><span className={`cmd-chg ${chg>=0?'chg-up':'chg-dn'}`}>{chg>=0?'+':''}{fmtNum(chg)}%</span></div>
+                        <div className="cmd-name">{item.label}</div>
+                        <div className="cmd-price">{item.unit} {v ? fmtNum(parseFloat(v.bid)) : "..."}</div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -321,46 +281,75 @@ export default function App() {
               <div className="card">
                 <div className="sec-hd"><div className="sec-cat">Simulador</div><h2 className="sec-title">Crédito <em>Imobiliário</em></h2></div>
                 <div className="form-grid">
-                  <div className="field"><label>Renda Mensal</label><input className="inp np" value={f.renda} onChange={e=>setF({...f,renda:e.target.value})} /></div>
-                  <div className="field"><label>Valor Imóvel</label><input className="inp np" value={f.imovel} onChange={e=>setF({...f,imovel:e.target.value})} /></div>
+                  <div className="field"><label>Renda</label><input className="inp np" value={f.renda} onChange={e=>setF({...f,renda:e.target.value})} /></div>
+                  <div className="field"><label>Imóvel</label><input className="inp np" value={f.imovel} onChange={e=>setF({...f,imovel:e.target.value})} /></div>
                   <div className="field"><label>Entrada</label><input className="inp np" value={f.entrada} onChange={e=>setF({...f,entrada:e.target.value})} /></div>
-                  <div className="field"><label>Taxa Anual %</label><input className="inp np" value={f.taxa} onChange={e=>setF({...f,taxa:e.target.value})} /></div>
+                  <div className="field"><label>Taxa %</label><input className="inp np" value={f.taxa} onChange={e=>setF({...f,taxa:e.target.value})} /></div>
                 </div>
-                <button className="btn-gold" onClick={simular}>Calcular e Analisar com IA</button>
+                <button className="btn-gold" onClick={simular}>Calcular Resultados</button>
                 {res && (
-                  <>
-                    <div className="res-grid">
-                      <div className="res-item"><div className="res-lbl">Parcela</div><div className="res-val o">{fmtBRL(res.parc)}</div></div>
-                      <div className="res-item"><div className="res-lbl">Comprometimento</div><div className="res-val r">{res.comp.toFixed(1)}%</div></div>
-                      <div className="res-item"><div className="res-lbl">Total Juros</div><div className="res-val">{fmtBRL(res.juros)}</div></div>
-                    </div>
-                    <div className="ai-summary" style={{marginTop:20}}>
-                      <div className="ai-summary-hd"><span>📊 Avaliação da IA</span></div>
-                      <p className="ai-summary-txt">{aiSimLoading ? "Processando..." : aiSimTxt}</p>
-                    </div>
-                  </>
+                  <div className="res-grid">
+                    <div className="res-item"><div className="res-lbl">Parcela</div><div className="res-val o">{fmtBRL(res.parc)}</div></div>
+                    <div className="res-item"><div className="res-lbl">Comprometimento</div><div className="res-val r">{res.comp.toFixed(1)}%</div></div>
+                    <div className="res-item"><div className="res-lbl">Total Juros</div><div className="res-val">{fmtBRL(res.juros)}</div></div>
+                  </div>
                 )}
               </div>
             )}
             {tab === "dividendos" && (
-              <>
-                <div className="sec-hd"><div className="sec-cat">Proventos</div><h2 className="sec-title">Agenda de <em>Dividendos</em></h2><p className="sec-sub">Dados reais de pagamentos confirmados na B3 para 2026.</p></div>
-                <div className="table-wrap">
-                  <table>
-                    <thead><tr><th>Empresa</th><th>Tipo</th><th>Valor</th><th>Data Com</th></tr></thead>
-                    <tbody>{DIVIDENDS_REAL.map(d=>(<tr key={d.ticker}><td><span className="ticker">{d.ticker}</span><span className="name-sub">{d.name}</span></td><td>{d.type}</td><td>{fmtBRL(parseFloat(d.value.replace(",",".")))}</td><td>{d.dateCom}</td></tr>))}</tbody>
-                  </table>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>Ticker</th><th>Tipo</th><th>Valor</th><th>Data</th></tr></thead>
+                  <tbody>{DIVIDENDS_REAL.map(d=>(<tr key={d.ticker}><td><span className="ticker">{d.ticker}</span><span className="name-sub">{d.name}</span></td><td>{d.type}</td><td>{fmtBRL(parseFloat(d.value.replace(",",".")))}</td><td>{d.dateCom}</td></tr>))}</tbody>
+                </table>
+              </div>
+            )}
+            {tab === "sobre" && (
+              <div className="art-view">
+                <h1 className="art-view-title">Sobre Nós</h1>
+                <div className="art-content">
+                  <p>O FinançaBR é uma plataforma dedicada a democratizar o acesso à inteligência financeira. Nossa missão é transformar dados complexos em decisões práticas para o seu patrimônio.</p>
                 </div>
-              </>
+              </div>
+            )}
+            {tab === "privacidade" && (
+              <div className="art-view">
+                <h1 className="art-view-title">Política de Privacidade</h1>
+                <div className="art-content">
+                  <p>Sua privacidade é nossa prioridade. Não coletamos dados pessoais para fins de venda a terceiros. Todas as simulações são processadas localmente para sua segurança.</p>
+                </div>
+              </div>
+            )}
+            {tab === "termos" && (
+              <div className="art-view">
+                <h1 className="art-view-title">Termos de Uso</h1>
+                <div className="art-content">
+                  <p>Ao utilizar esta plataforma, você concorda que as informações aqui contidas são para fins educativos e não constituem recomendação de investimento.</p>
+                </div>
+              </div>
             )}
           </>
         )}
+
+        <div className="disclaimer">
+          <strong>Aviso de Segurança e Isenção de Responsabilidade</strong>
+          Este site é uma ferramenta meramente informativa e educativa. As análises, simulações e dados aqui apresentados **NÃO CONSTITUEM INDICAÇÃO OU RECOMENDAÇÃO FINANCEIRA** de compra ou venda de qualquer ativo. O mercado financeiro envolve riscos e a decisão final é sempre de responsabilidade do investidor. Sempre consulte um profissional certificado antes de realizar qualquer operação.
+        </div>
+
         <section className="conv-section">
           <h2 className="conv-title">Pronto para investir?</h2>
           <div className="hero-btns"><button className="btn-main">Abrir Corretora</button><button className="btn-sec">Ver Crédito</button></div>
         </section>
       </main>
-      <footer className="ftr">© 2026 FinançaBR — Inteligência Financeira</footer>
+
+      <footer className="ftr">
+        <div className="ftr-links">
+          <span className="ftr-link" onClick={() => {setTab("sobre"); setArt(null); window.scrollTo(0,0);}}>Sobre Nós</span>
+          <span className="ftr-link" onClick={() => {setTab("privacidade"); setArt(null); window.scrollTo(0,0);}}>Privacidade</span>
+          <span className="ftr-link" onClick={() => {setTab("termos"); setArt(null); window.scrollTo(0,0);}}>Termos</span>
+        </div>
+        <div className="ftr-copy">© 2026 FinançaBR — Inteligência Financeira</div>
+      </footer>
     </div>
   );
 }
