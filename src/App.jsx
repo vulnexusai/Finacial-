@@ -1098,9 +1098,9 @@ export default function App() {
 
   // Fetch Markdown content for institutional pages
   useEffect(() => {
-    fetch("/src/pages/SobreNos.md").then(res => res.text()).then(setAboutContent);
-    fetch("/src/pages/PoliticaPrivacidade.md").then(res => res.text()).then(setPrivacyContent);
-    fetch("/src/pages/TermosDeUso.md").then(res => res.text()).then(setTermsContent);
+    fetch("/content/SobreNos.md").then(res => res.text()).then(setAboutContent);
+    fetch("/content/PoliticaPrivacidade.md").then(res => res.text()).then(setPrivacyContent);
+    fetch("/content/TermosDeUso.md").then(res => res.text()).then(setTermsContent);
   }, []);
 
   const handleTabChange = (newTab) => {
