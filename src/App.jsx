@@ -761,7 +761,7 @@ function Simulador(){
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
-          model:"llama-3.3-70b-versatile",
+          // Removido o modelo fixo daqui para o Backend decidir o melhor (mais estável)
           messages:[{
             role:"system",
             content:"Você é um consultor financeiro brasileiro especialista em crédito imobiliário. Analise com tom direto, humano e útil. Use o contexto econômico brasileiro atual."
@@ -772,9 +772,15 @@ function Simulador(){
         })
       });
       const data = await response.json();
-      setAiTxt(data.choices[0].message.content);
+      
+      if (data.choices && data.choices[0]) {
+        setAiTxt(data.choices[0].message.content);
+      } else {
+        // Se a API retornar erro de chave ou modelo
+        setAiTxt(data.message || "IA indisponível no momento. Verifique as configurações da API.");
+      }
     } catch(e) {
-      setAiTxt("Erro ao conectar. Tente novamente.");
+      setAiTxt("Erro de conexão com a IA. Verifique se a variável GROQ_API_KEY está configurada na Vercel.");
     }
     setLoading(false);
   },[f]);
