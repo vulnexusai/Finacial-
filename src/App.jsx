@@ -162,9 +162,24 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .aff-link:hover{border-color:var(--gold);background:rgba(201,168,76,.04);}
 .aff-arrow{color:var(--gold);}
 
-.divider{height:1px;background:var(--border);margin:22px 0;}
+	.divider{height:1px;background:var(--border);margin:22px 0;}
+	
+	/* DIVIDENDOS */
+	.div-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+	.div-table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left;}
+	.div-table th{background:var(--surface2);color:var(--muted);font-weight:600;padding:14px 18px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);}
+	.div-table td{padding:16px 18px;border-bottom:1px solid var(--border);color:#d4cec0;vertical-align:middle;}
+	.div-table tr:last-child td{border-bottom:none;}
+	.div-table tr:hover td{background:rgba(201,168,76,.03);}
+	.div-ticker{font-weight:700;color:var(--gold);font-size:.9rem;display:block;}
+	.div-name{font-size:.7rem;color:var(--muted);display:block;margin-top:2px;}
+	.div-type{font-size:.72rem;background:rgba(201,168,76,.1);color:var(--gold-light);padding:2px 8px;border-radius:100px;display:inline-block;font-weight:500;}
+	.div-val{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);}
+	.div-date{font-size:.8rem;color:var(--text);font-weight:500;}
+	.div-date-label{font-size:.65rem;color:var(--muted);display:block;margin-top:2px;}
+	.div-badge-today{background:rgba(76,175,125,.15);color:var(--green);font-size:.65rem;padding:2px 8px;border-radius:100px;font-weight:600;margin-left:6px;}
 
-/* ARTIGOS */
+	/* ARTIGOS */
 .art-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
 .art-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;transition:border-color .2s,transform .15s;}
 .art-card:hover{border-color:var(--gold-dim);transform:translateY(-2px);}
@@ -219,6 +234,19 @@ const INVEST = [
   { name:"LCI / LCA",             tag:"isento de IR",   rate:10.8, ir:false, liq:"90 dias+",   min:"R$ 500"   },
   { name:"Ações (Dividendos)",    tag:"renda variável", rate: 9.5, ir:false, liq:"D+2",        min:"R$ 10"    },
   { name:"Fundos Imobiliários",   tag:"renda mensal",   rate:11.2, ir:false, liq:"D+2",        min:"R$ 100"   },
+];
+
+const DIVIDENDS = [
+  { ticker: "PETR4", name: "Petrobras", type: "Dividendo", value: "0,52", dateCom: "25/04/2026", datePay: "20/05/2026" },
+  { ticker: "VALE3", name: "Vale", type: "JCP", value: "2,73", dateCom: "11/04/2026", datePay: "19/04/2026" },
+  { ticker: "ITUB4", name: "Itaú Unibanco", type: "Dividendo", value: "0,017", dateCom: "30/04/2026", datePay: "01/06/2026" },
+  { ticker: "BBDC4", name: "Bradesco", type: "JCP", value: "0,017", dateCom: "01/05/2026", datePay: "03/06/2026" },
+  { ticker: "BBAS3", name: "Banco do Brasil", type: "Dividendo", value: "0,41", dateCom: "13/05/2026", datePay: "28/05/2026" },
+  { ticker: "ABEV3", name: "Ambev", type: "JCP", value: "0,73", dateCom: "19/12/2025", datePay: "15/04/2026" },
+  { ticker: "WEGE3", name: "WEG", type: "Dividendo", value: "0,24", dateCom: "24/03/2026", datePay: "14/08/2026" },
+  { ticker: "EGIE3", name: "Engie Brasil", type: "Dividendo", value: "1,13", dateCom: "08/05/2026", datePay: "26/07/2026" },
+  { ticker: "CPLE6", name: "Copel", type: "JCP", value: "0,14", dateCom: "31/03/2026", datePay: "30/06/2026" },
+  { ticker: "SANB11", name: "Santander BR", type: "Dividendo", value: "0,18", dateCom: "19/04/2026", datePay: "15/05/2026" }
 ];
 
 const ARTICLES = [
@@ -1129,6 +1157,7 @@ export default function App() {
         <nav className="tabs">
           <button className={`tab ${tab==="mercados"?'active':''}`} onClick={()=>{handleTabChange("mercados");}}>Cotações</button>
           <button className={`tab ${tab==="simulador"?'active':''}`} onClick={()=>{handleTabChange("simulador");}}>Simulador</button>
+          <button className={`tab ${tab==="dividendos"?'active':''}`} onClick={()=>{handleTabChange("dividendos");}}>Dividendos</button>
           <button className={`tab ${tab==="comparador"?'active':''}`} onClick={()=>{handleTabChange("comparador");}}>Comparador</button>
         </nav>
       </header>
@@ -1204,6 +1233,58 @@ export default function App() {
                 <div className="disclaimer">
                   <strong>Aviso Legal</strong>
                   As simulações de crédito e as análises geradas por inteligência artificial são estimativas baseadas em parâmetros gerais e não garantem aprovação de crédito ou taxas específicas em instituições financeiras. O custo efetivo total (CET) pode variar. Sempre consulte o seu banco para condições oficiais.
+                </div>
+              </>
+            )}
+            {tab === "dividendos" && (
+              <>
+                <div className="sec-hd">
+                  <span className="sec-cat">Proventos B3</span>
+                  <h2 className="sec-title">Calendário de <em>Dividendos</em></h2>
+                  <p className="sec-sub">Confira as datas e valores dos próximos pagamentos das principais empresas da bolsa brasileira.</p>
+                </div>
+                
+                <div className="div-table-wrap">
+                  <table className="div-table">
+                    <thead>
+                      <tr>
+                        <th>Empresa</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Data Com</th>
+                        <th>Pagamento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {DIVIDENDS.map((d, i) => (
+                        <tr key={i}>
+                          <td>
+                            <span className="div-ticker">{d.ticker}</span>
+                            <span className="div-name">{d.name}</span>
+                          </td>
+                          <td><span className="div-type">{d.type}</span></td>
+                          <td><span className="div-val">R$ {d.value}</span></td>
+                          <td>
+                            <span className="div-date">{d.dateCom}</span>
+                            <span className="div-date-label">Até esta data</span>
+                          </td>
+                          <td>
+                            <span className="div-date">{d.datePay}</span>
+                            <span className="div-date-label">Previsão</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="callout">
+                  <strong>Nota Importante:</strong> As datas e valores são baseados em anúncios oficiais das empresas e podem sofrer alterações. Sempre verifique o site de RI (Relações com Investidores) de cada companhia para confirmação.
+                </div>
+                <div className="divider" />
+                <div className="disclaimer">
+                  <strong>Aviso Legal</strong>
+                  Este calendário é meramente informativo. Os dados são coletados de fontes públicas e podem conter erros ou atrasos. O pagamento de dividendos é uma decisão soberana das empresas e pode ser alterado ou cancelado conforme as normas vigentes. Não constitui recomendação de compra ou venda.
                 </div>
               </>
             )}
