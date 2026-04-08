@@ -1,68 +1,21 @@
-// api/cotacoes.js — VERSÃO 7 (Correção: variação percentual usando D-2 como fallback)
+// api/cotacoes.js — VERSÃO 8 (MIGRAÇÃO: AwesomeAPI para Tempo Real + Fallbacks)
 // Fontes:
-//   • Câmbio e Metais: fawazahmed0 Currency API (com dados históricos)
+//   • Câmbio e Metais: AwesomeAPI (Tempo Real - 30s)
 //   • Criptomoedas: CoinGecko Public API
 //   • Índices e Petróleo: Yahoo Finance Chart API
-//
-// PROBLEMA CORRIGIDO: A API "latest" retorna os dados do último dia disponível
-// (geralmente D-1). Ao buscar "ontem" (D-1) como referência, ambas as datas
-// apontam para o mesmo snapshot, resultando em variação 0,00%.
-// SOLUÇÃO: Buscar D-2 como referência de comparação. Se D-2 também coincidir
-// com "latest", tentar D-3 como último recurso.
 
 export default async function handler(req, res) {
   try {
-    // Obter data UTC para evitar problemas de fuso horário com a API
-    const now = new Date();
-    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-
-    const ymd = (d) => d.toISOString().split('T')[0];
-
-    // Gerar datas de referência: D-1, D-2 e D-3
-    const dMinus = (days) => {
-      const d = new Date(todayUTC);
-      d.setUTCDate(d.getUTCDate() - days);
-      return ymd(d);
-    };
-
-    const d1 = dMinus(1); // ontem
-    const d2 = dMinus(2); // anteontem
-    const d3 = dMinus(3); // 3 dias atrás
-
-    // ── 1. BUSCAR CÂMBIO E METAIS (USD, BRL, EUR, XAU, XAG) ───────────────────
-    // "latest" retorna o snapshot mais recente disponível (geralmente D-1).
-    // Para a variação, buscamos D-2 e D-3 como fallback para garantir que
-    // a data de referência seja diferente da data atual da API.
-    const [fxTodayRes, fxD2Res, fxD3Res] = await Promise.all([
-      fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
-      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d2}/v1/currencies/usd.json`),
-      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d3}/v1/currencies/usd.json`),
-    ]);
-
-    const fxToday = fxTodayRes.ok ? await fxTodayRes.json() : null;
-    const fxD2    = fxD2Res.ok    ? await fxD2Res.json()    : null;
-    const fxD3    = fxD3Res.ok    ? await fxD3Res.json()    : null;
-
-    // Selecionar a referência histórica: preferir D-2, mas se a data coincidir
-    // com "latest" (ambas apontam para o mesmo dia), usar D-3.
-    let fxRef = null;
-    if (fxToday && fxD2) {
-      if (fxD2.date !== fxToday.date) {
-        fxRef = fxD2; // D-2 é diferente de hoje → usar D-2
-      } else if (fxD3 && fxD3.date !== fxToday.date) {
-        fxRef = fxD3; // D-2 == hoje, tentar D-3
-      }
-      // Se D-3 também coincidir, fxRef permanece null → porcentagem "0.00"
-    }
-
-    // Log para depuração (visível nos logs da Vercel)
-    console.log(`Dates: latest=${fxToday?.date}, d2=${fxD2?.date}, d3=${fxD3?.date}`);
-    console.log(`Ref escolhida: ${fxRef?.date ?? 'nenhuma'}`);
-    console.log(`FX Status: today=${fxTodayRes.status}, d2=${fxD2Res.status}, d3=${fxD3Res.status}`);
+    // ── 1. BUSCAR CÂMBIO E METAIS (AwesomeAPI - Tempo Real) ──────────────────
+    // Parâmetros: USD-BRL (Dólar), EUR-BRL (Euro), XAU-BRL (Ouro), XAG-BRL (Prata)
+    const awesomeRes = await fetch(
+      "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,XAU-BRL,XAG-BRL"
+    );
+    const awesomeData = awesomeRes.ok ? await awesomeRes.json() : null;
 
     // ── 2. BUSCAR CRIPTO (BTC, ETH) ──────────────────────────────────────────
     const cgRes = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=brl&include_24hr_change=true`
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=brl&include_24hr_change=true"
     );
     const cg = cgRes.ok ? await cgRes.json() : {};
 
@@ -104,40 +57,40 @@ export default async function handler(req, res) {
     // ── MONTAGEM DO OBJETO DE RESPOSTA ───────────────────────────────────
     const data = {};
 
-    // CÂMBIO (Baseado na Currency API com histórico)
-    if (fxToday) {
-      const usdBrl = fxToday.usd.brl;
-      const usdBrlRef = fxRef?.usd?.brl;
-      data.USDBRL = {
-        bid: usdBrl.toFixed(4),
-        pctChange: usdBrlRef ? pct(usdBrl, usdBrlRef) : "0.00",
-        name: "Dólar Americano/Real",
-      };
-
-      const eurBrl = (1 / fxToday.usd.eur) * usdBrl;
-      const eurBrlRef = fxRef ? (1 / fxRef.usd.eur) * fxRef.usd.brl : null;
-      data.EURBRL = {
-        bid: eurBrl.toFixed(4),
-        pctChange: eurBrlRef ? pct(eurBrl, eurBrlRef) : "0.00",
-        name: "Euro/Real",
-      };
-
-      // METAIS (XAU/XAG convertidos para BRL/oz)
-      const xauBrl = (1 / fxToday.usd.xau) * usdBrl;
-      const xauBrlRef = fxRef ? (1 / fxRef.usd.xau) * fxRef.usd.brl : null;
-      data.XAUBRL = {
-        bid: xauBrl.toFixed(2),
-        pctChange: xauBrlRef ? pct(xauBrl, xauBrlRef) : "0.00",
-        name: "Ouro/Real (oz)",
-      };
-
-      const xagBrl = (1 / fxToday.usd.xag) * usdBrl;
-      const xagBrlRef = fxRef ? (1 / fxRef.usd.xag) * fxRef.usd.brl : null;
-      data.XAGBRL = {
-        bid: xagBrl.toFixed(2),
-        pctChange: xagBrlRef ? pct(xagBrl, xagBrlRef) : "0.00",
-        name: "Prata/Real (oz)",
-      };
+    // CÂMBIO E METAIS (Dados da AwesomeAPI)
+    if (awesomeData) {
+      // Dólar
+      if (awesomeData.USDBRL) {
+        data.USDBRL = {
+          bid: parseFloat(awesomeData.USDBRL.bid).toFixed(4),
+          pctChange: parseFloat(awesomeData.USDBRL.pctChange).toFixed(2),
+          name: "Dólar Americano/Real",
+        };
+      }
+      // Euro
+      if (awesomeData.EURBRL) {
+        data.EURBRL = {
+          bid: parseFloat(awesomeData.EURBRL.bid).toFixed(4),
+          pctChange: parseFloat(awesomeData.EURBRL.pctChange).toFixed(2),
+          name: "Euro/Real",
+        };
+      }
+      // Ouro (XAU-BRL já vem convertido pela AwesomeAPI)
+      if (awesomeData.XAUBRL) {
+        data.XAUBRL = {
+          bid: parseFloat(awesomeData.XAUBRL.bid).toFixed(2),
+          pctChange: parseFloat(awesomeData.XAUBRL.pctChange).toFixed(2),
+          name: "Ouro/Real (oz)",
+        };
+      }
+      // Prata (XAG-BRL já vem convertido pela AwesomeAPI)
+      if (awesomeData.XAGBRL) {
+        data.XAGBRL = {
+          bid: parseFloat(awesomeData.XAGBRL.bid).toFixed(2),
+          pctChange: parseFloat(awesomeData.XAGBRL.pctChange).toFixed(2),
+          name: "Prata/Real (oz)",
+        };
+      }
     }
 
     // CRIPTO (Baseado na CoinGecko)
@@ -181,7 +134,10 @@ export default async function handler(req, res) {
       name: "Petróleo Brent (USD)",
     };
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=30");
+    // Configuração de Cache (Vercel Edge Cache)
+    // s-maxage=30: O cache da Vercel guarda por 30 segundos (Tempo Real)
+    // stale-while-revalidate=60: Serve o cache antigo enquanto busca o novo em background
+    res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(200).json(data);
   } catch (e) {
