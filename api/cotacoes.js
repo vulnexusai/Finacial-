@@ -73,35 +73,35 @@ export default async function handler(req, res) {
     // CÂMBIO (Baseado na Currency API com histórico)
     if (fxToday) {
       const usdBrl = fxToday.usd.brl;
-      const usdBrlYest = fxYest?.usd?.brl || usdBrl; // Fallback se ontem não estiver disponível
+      const usdBrlYest = fxYest?.usd?.brl;
       data.USDBRL = {
         bid: usdBrl.toFixed(4),
-        pctChange: pct(usdBrl, usdBrlYest),
+        pctChange: usdBrlYest ? pct(usdBrl, usdBrlYest) : "0.00",
         name: "Dólar Americano/Real",
       };
 
       const eurBrl = (1 / fxToday.usd.eur) * usdBrl;
-      const eurBrlYest = fxYest ? (1 / fxYest.usd.eur) * fxYest.usd.brl : eurBrl;
+      const eurBrlYest = fxYest ? (1 / fxYest.usd.eur) * fxYest.usd.brl : null;
       data.EURBRL = {
         bid: eurBrl.toFixed(4),
-        pctChange: pct(eurBrl, eurBrlYest),
+        pctChange: eurBrlYest ? pct(eurBrl, eurBrlYest) : "0.00",
         name: "Euro/Real",
       };
 
       // METAIS (XAU/XAG convertidos para BRL/oz)
       const xauBrl = (1 / fxToday.usd.xau) * usdBrl;
-      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) * usdBrlYest : xauBrl;
+      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) * fxYest.usd.brl : null;
       data.XAUBRL = {
         bid: xauBrl.toFixed(2),
-        pctChange: pct(xauBrl, xauBrlYest),
+        pctChange: xauBrlYest ? pct(xauBrl, xauBrlYest) : "0.00",
         name: "Ouro/Real (oz)",
       };
 
       const xagBrl = (1 / fxToday.usd.xag) * usdBrl;
-      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) * usdBrlYest : xagBrl;
+      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) * fxYest.usd.brl : null;
       data.XAGBRL = {
         bid: xagBrl.toFixed(2),
-        pctChange: pct(xagBrl, xagBrlYest),
+        pctChange: xagBrlYest ? pct(xagBrl, xagBrlYest) : "0.00",
         name: "Prata/Real (oz)",
       };
     }
