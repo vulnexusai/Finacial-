@@ -687,20 +687,27 @@ function Cotacoes(){
                   const chg = v ? parseFloat(v.pctChange) : 0;
                   const cls = chg > 0 ? "chg-up" : chg < 0 ? "chg-dn" : "chg-flat";
                   const sign = chg > 0 ? "+" : "";
+                  
+                  // Se marketData existe mas esta chave não, mostrar como 0.00 (API falhou para este item)
+                  const hasData = marketData && v;
+                  const isPending = !marketData && loading;
+
                   return (
                     <div className="cmd-card" key={item.key}>
                       <div className="cmd-card-top">
                         <span className="cmd-icon">{item.icon}</span>
-                        {v
-                          ? <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg,2)}%</span>
-                          : <span className="cmd-skeleton" style={{width:48,height:20,borderRadius:100}}>&nbsp;</span>
-                        }
+                        {isPending ? (
+                          <span className="cmd-skeleton" style={{width:48,height:20,borderRadius:100}}>&nbsp;</span>
+                        ) : (
+                          <span className={`cmd-chg ${cls}`}>{sign}{fmtNum(chg,2)}%</span>
+                        )}
                       </div>
                       <div className="cmd-name">{item.label}</div>
-                      {v
-                        ? <div className="cmd-price">{item.unit} {fmtNum(parseFloat(v.bid),2)}</div>
-                        : <div className="cmd-skeleton" style={{height:26,width:90,borderRadius:4,marginTop:4}}>&nbsp;</div>
-                      }
+                      {isPending ? (
+                        <div className="cmd-skeleton" style={{height:26,width:90,borderRadius:4,marginTop:4}}>&nbsp;</div>
+                      ) : (
+                        <div className="cmd-price">{item.unit} {fmtNum(parseFloat(v?.bid || 0),2)}</div>
+                      )}
                       <div className="cmd-unit">{item.unit} / {item.key.split("-")[0]}</div>
                       {v?.history && v.history.length > 1 && (
                         <div className="cmd-chart">
