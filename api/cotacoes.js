@@ -89,16 +89,16 @@ export default async function handler(req, res) {
       };
 
       // METAIS (XAU/XAG convertidos para BRL/oz)
-      const xauBrl = (1 / fxToday.usd.xau);
-      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) : xauBrl;
+      const xauBrl = (1 / fxToday.usd.xau) * usdBrl;
+      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) * usdBrlYest : xauBrl;
       data.XAUBRL = {
         bid: xauBrl.toFixed(2),
         pctChange: pct(xauBrl, xauBrlYest),
         name: "Ouro/Real (oz)",
       };
 
-      const xagBrl = (1 / fxToday.usd.xag);
-      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) : xagBrl;
+      const xagBrl = (1 / fxToday.usd.xag) * usdBrl;
+      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) * usdBrlYest : xagBrl;
       data.XAGBRL = {
         bid: xagBrl.toFixed(2),
         pctChange: pct(xagBrl, xagBrlYest),
