@@ -1,35 +1,64 @@
-// api/cotacoes.js — VERSÃO 6 (Com Variação Percentual Corrigida)
+// api/cotacoes.js — VERSÃO 7 (Correção: variação percentual usando D-2 como fallback)
 // Fontes:
-//   • Câmbio e Metais: fawazahmed0 Currency API (com dados históricos de ontem)
+//   • Câmbio e Metais: fawazahmed0 Currency API (com dados históricos)
 //   • Criptomoedas: CoinGecko Public API
 //   • Índices e Petróleo: Yahoo Finance Chart API
+//
+// PROBLEMA CORRIGIDO: A API "latest" retorna os dados do último dia disponível
+// (geralmente D-1). Ao buscar "ontem" (D-1) como referência, ambas as datas
+// apontam para o mesmo snapshot, resultando em variação 0,00%.
+// SOLUÇÃO: Buscar D-2 como referência de comparação. Se D-2 também coincidir
+// com "latest", tentar D-3 como último recurso.
 
 export default async function handler(req, res) {
   try {
     // Obter data UTC para evitar problemas de fuso horário com a API
     const now = new Date();
     const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const yesterdayUTC = new Date(todayUTC);
-    yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
-    
+
     const ymd = (d) => d.toISOString().split('T')[0];
 
-    const todayStr = ymd(todayUTC);
-    const yesterdayStr = ymd(yesterdayUTC);
+    // Gerar datas de referência: D-1, D-2 e D-3
+    const dMinus = (days) => {
+      const d = new Date(todayUTC);
+      d.setUTCDate(d.getUTCDate() - days);
+      return ymd(d);
+    };
+
+    const d1 = dMinus(1); // ontem
+    const d2 = dMinus(2); // anteontem
+    const d3 = dMinus(3); // 3 dias atrás
 
     // ── 1. BUSCAR CÂMBIO E METAIS (USD, BRL, EUR, XAU, XAG) ───────────────────
-    // Usar a API com histórico para obter dados de ontem
-    const [fxTodayRes, fxYestRes] = await Promise.all([
+    // "latest" retorna o snapshot mais recente disponível (geralmente D-1).
+    // Para a variação, buscamos D-2 e D-3 como fallback para garantir que
+    // a data de referência seja diferente da data atual da API.
+    const [fxTodayRes, fxD2Res, fxD3Res] = await Promise.all([
       fetch(`https://latest.currency-api.pages.dev/v1/currencies/usd.json`),
-      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${yesterdayStr}/v1/currencies/usd.json`),
+      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d2}/v1/currencies/usd.json`),
+      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d3}/v1/currencies/usd.json`),
     ]);
 
     const fxToday = fxTodayRes.ok ? await fxTodayRes.json() : null;
-    const fxYest = fxYestRes.ok ? await fxYestRes.json() : null;
+    const fxD2    = fxD2Res.ok    ? await fxD2Res.json()    : null;
+    const fxD3    = fxD3Res.ok    ? await fxD3Res.json()    : null;
+
+    // Selecionar a referência histórica: preferir D-2, mas se a data coincidir
+    // com "latest" (ambas apontam para o mesmo dia), usar D-3.
+    let fxRef = null;
+    if (fxToday && fxD2) {
+      if (fxD2.date !== fxToday.date) {
+        fxRef = fxD2; // D-2 é diferente de hoje → usar D-2
+      } else if (fxD3 && fxD3.date !== fxToday.date) {
+        fxRef = fxD3; // D-2 == hoje, tentar D-3
+      }
+      // Se D-3 também coincidir, fxRef permanece null → porcentagem "0.00"
+    }
 
     // Log para depuração (visível nos logs da Vercel)
-    console.log(`Dates: today=${todayStr}, yesterday=${yesterdayStr}`);
-    console.log(`FX Status: today=${fxTodayRes.status}, yesterday=${fxYestRes.status}`);
+    console.log(`Dates: latest=${fxToday?.date}, d2=${fxD2?.date}, d3=${fxD3?.date}`);
+    console.log(`Ref escolhida: ${fxRef?.date ?? 'nenhuma'}`);
+    console.log(`FX Status: today=${fxTodayRes.status}, d2=${fxD2Res.status}, d3=${fxD3Res.status}`);
 
     // ── 2. BUSCAR CRIPTO (BTC, ETH) ──────────────────────────────────────────
     const cgRes = await fetch(
@@ -78,35 +107,35 @@ export default async function handler(req, res) {
     // CÂMBIO (Baseado na Currency API com histórico)
     if (fxToday) {
       const usdBrl = fxToday.usd.brl;
-      const usdBrlYest = fxYest?.usd?.brl;
+      const usdBrlRef = fxRef?.usd?.brl;
       data.USDBRL = {
         bid: usdBrl.toFixed(4),
-        pctChange: usdBrlYest ? pct(usdBrl, usdBrlYest) : "0.00",
+        pctChange: usdBrlRef ? pct(usdBrl, usdBrlRef) : "0.00",
         name: "Dólar Americano/Real",
       };
 
       const eurBrl = (1 / fxToday.usd.eur) * usdBrl;
-      const eurBrlYest = fxYest ? (1 / fxYest.usd.eur) * fxYest.usd.brl : null;
+      const eurBrlRef = fxRef ? (1 / fxRef.usd.eur) * fxRef.usd.brl : null;
       data.EURBRL = {
         bid: eurBrl.toFixed(4),
-        pctChange: eurBrlYest ? pct(eurBrl, eurBrlYest) : "0.00",
+        pctChange: eurBrlRef ? pct(eurBrl, eurBrlRef) : "0.00",
         name: "Euro/Real",
       };
 
       // METAIS (XAU/XAG convertidos para BRL/oz)
       const xauBrl = (1 / fxToday.usd.xau) * usdBrl;
-      const xauBrlYest = fxYest ? (1 / fxYest.usd.xau) * fxYest.usd.brl : null;
+      const xauBrlRef = fxRef ? (1 / fxRef.usd.xau) * fxRef.usd.brl : null;
       data.XAUBRL = {
         bid: xauBrl.toFixed(2),
-        pctChange: xauBrlYest ? pct(xauBrl, xauBrlYest) : "0.00",
+        pctChange: xauBrlRef ? pct(xauBrl, xauBrlRef) : "0.00",
         name: "Ouro/Real (oz)",
       };
 
       const xagBrl = (1 / fxToday.usd.xag) * usdBrl;
-      const xagBrlYest = fxYest ? (1 / fxYest.usd.xag) * fxYest.usd.brl : null;
+      const xagBrlRef = fxRef ? (1 / fxRef.usd.xag) * fxRef.usd.brl : null;
       data.XAGBRL = {
         bid: xagBrl.toFixed(2),
-        pctChange: xagBrlYest ? pct(xagBrl, xagBrlYest) : "0.00",
+        pctChange: xagBrlRef ? pct(xagBrl, xagBrlRef) : "0.00",
         name: "Prata/Real (oz)",
       };
     }
