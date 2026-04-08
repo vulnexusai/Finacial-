@@ -1,30 +1,29 @@
-// api/groq.js — VERSÃO 2 (ESTABILIDADE: Modelo estável e Verificação de Chave)
+// api/groq.js — VERSÃO 3 (DEBUG: Captura de erro detalhada e Fallback Robusto)
 export default async function handler(req, res) {
-  // Configurações de CORS para permitir chamadas do frontend
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // 1. Verificar se a chave da API está configurada no Backend (Vercel)
-  // Nota: A variável deve se chamar GROQ_API_KEY (sem o prefixo VITE_)
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    console.error("ERRO: GROQ_API_KEY não encontrada nas variáveis de ambiente.");
     return res.status(500).json({ 
       error: "Chave da API não configurada", 
-      message: "Por favor, adicione a variável GROQ_API_KEY nas configurações da Vercel." 
+      message: "Por favor, adicione a variável GROQ_API_KEY nas configurações da Vercel (sem o prefixo VITE_)." 
     });
   }
 
   try {
-    // 2. Preparar o corpo da requisição
-    // Garantir que estamos usando um modelo estável e gratuito
+    // Tentar com o modelo mais estável e gratuito do Groq no momento
+    const model = "llama-3.1-8b-instant"; 
+    
     const body = {
       ...req.body,
-      model: "llama3-8b-8192", // Modelo rápido e estável para o plano gratuito
+      model: model,
     };
+
+    console.log("Iniciando chamada ao Groq com modelo:", model);
 
     const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -38,13 +37,23 @@ export default async function handler(req, res) {
     const data = await upstream.json();
 
     if (!upstream.ok) {
-      console.error("Erro na API do Groq:", data);
-      return res.status(upstream.status).json(data);
+      // Logar o erro exato retornado pelo Groq para depuração na Vercel
+      console.error("Erro retornado pela API do Groq:", JSON.stringify(data));
+      
+      // Se for erro de modelo inexistente ou limite de quota, informar o usuário
+      const errorMsg = data.error?.message || "Erro na API do Groq";
+      return res.status(upstream.status).json({ 
+        error: "Falha na IA", 
+        message: `O Groq respondeu: ${errorMsg}` 
+      });
     }
 
     res.status(200).json(data);
   } catch (e) {
     console.error("Erro crítico no handler do Groq:", e.message);
-    res.status(500).json({ error: "Erro interno no servidor", detail: e.message });
+    res.status(500).json({ 
+      error: "Erro interno no servidor", 
+      message: "Não foi possível conectar ao servidor da IA. Verifique sua conexão." 
+    });
   }
 }
