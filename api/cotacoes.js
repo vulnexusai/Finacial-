@@ -6,15 +6,16 @@
 
 export default async function handler(req, res) {
   try {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    // Obter data UTC para evitar problemas de fuso horário com a API
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const yesterdayUTC = new Date(todayUTC);
+    yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
     
-    const ymd = (d) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const ymd = (d) => d.toISOString().split('T')[0];
 
-    const todayStr = ymd(today);
-    const yesterdayStr = ymd(yesterday);
+    const todayStr = ymd(todayUTC);
+    const yesterdayStr = ymd(yesterdayUTC);
 
     // ── 1. BUSCAR CÂMBIO E METAIS (USD, BRL, EUR, XAU, XAG) ───────────────────
     // Usar a API com histórico para obter dados de ontem
@@ -25,6 +26,10 @@ export default async function handler(req, res) {
 
     const fxToday = fxTodayRes.ok ? await fxTodayRes.json() : null;
     const fxYest = fxYestRes.ok ? await fxYestRes.json() : null;
+
+    // Log para depuração (visível nos logs da Vercel)
+    console.log(`Dates: today=${todayStr}, yesterday=${yesterdayStr}`);
+    console.log(`FX Status: today=${fxTodayRes.status}, yesterday=${fxYestRes.status}`);
 
     // ── 2. BUSCAR CRIPTO (BTC, ETH) ──────────────────────────────────────────
     const cgRes = await fetch(
